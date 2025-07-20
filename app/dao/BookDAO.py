@@ -1,4 +1,5 @@
 from sqlalchemy import desc, asc, or_
+from sqlalchemy.sql import text
 
 from app.model.Book import Book
 from app.model.BookGerne import BookGerne
@@ -12,9 +13,8 @@ def find_by_id(id):
 
 def find_by_gerne(gerne_id):
     query = Book.query
-    gerne = BookGerne.query.get(gerne_id)
     query = query.join(BookGerne)
-    query = query.filter(BookGerne.lft >= gerne.lft, BookGerne.rgt <= gerne.rgt)
+    query = query.filter(BookGerne.book_gerne_id == gerne_id)
     return query.all()
 
 
@@ -40,6 +40,20 @@ def find_all(page=1):
 
 def countBook():
     return Book.query.count()
+
+
+def count_book_sell(book_id):
+    query = text(
+        """
+               select sum(od.quantity) as sold from (
+                       select * from order_detail od
+                       where od.order_id not in (select order_id from order_cancellation)
+                   ) as od , book b
+                   where od.book_id = b.book_id
+                   and b.book_id = :book 
+           """)
+    result = db.session.execute(query, {'book': book_id}).fetchone()
+    return result.sold if result.sold else 0
 
 
 def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=None, page=1):

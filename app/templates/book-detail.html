@@ -1,0 +1,104 @@
+{% extends 'layout/base.html' %}
+
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/book-detail.css') }}">
+{% endblock %}
+{% block content %}
+    <div class="my-bg-color pt-3 pb-3">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-md-5 rounded banner">
+                    <div class="item-bg-color rounded p-3">
+                        <div class="poster d-flex justify-content-center">
+                            <img src="{% if book.image_url %}
+                                 	{{ book.image_url }}
+                                 	{% else %} ''
+                                 {% endif %} ">
+                        </div>
+                        <div class="images">
+                            <ul class="list-unstyled list-image d-flex justify-content-start pb-3">
+                                <li class="image-item">
+                                    <img src="{{ book.image_url }}">
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="controller d-flex align-items-center justify-content-around">
+                            <button class="btn btn-buy pt-2 pb-2 pr-3 pl-3 btn-primary btn-large">
+                                Muợn Sách
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7 rounded">
+                    <div class="item-bg-color p-2 rounded">
+                        <div class="item-header">
+                            <h4>{{ book.title }}</h4>
+                        </div>
+                        <div class="item-text row m-0">
+                            <span class="col-md-6">Nhà cung cấp: <span
+                                    class="font-weight-bold">Nhà Xuất Bản Kim Đồng</span></span>
+                            <span class="col-md-6"> Tác giả: <span class="font-weight-bold">{{ book.author }}</span>
+                                </span>
+                            <span class="col-md-6"> Nhà xuất bản:
+                                 <span class="font-weight-bold">{{ book.publisher.publisher_name }}</span>
+                                </span>
+                            <span class="col-md-6">Hình thức bìa:
+                                 <span class="font-weight-bold">{{ book.format }}</span>
+                                </span>
+                        </div>
+                        <div class="rating">
+                            <span class="text-center"> Đã muợn {{ sold_book }}</span>
+                        </div>
+                        <div class="">
+                            <span class="text-large text-primary font-weight-bold">{{ book.price|currency('VND') }} </span>
+
+                        </div>
+                    </div>
+                    <div class="item-bg-color p-2 mt-3 rounded">
+                        <div class="item-header">
+                            <h4>Thông tin chi tiết</h4>
+                        </div>
+                        {% for key,value in detail_book.items() %}
+                            <div class="row m-0 pt-4 item-information">
+                                <div class="col-md-3 p-0">
+                                    {{ key }}
+                                </div>
+                                <div class="col-md-9 text-black">{{ value }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="item-bg-color p-2 mt-3 rounded position-relative">
+                        <div class="item-header">
+                            <h4>Mô tả sản phẩm</h4>
+                        </div>
+                        <div class="item-content">
+                            <p>  {{ book.description }}</p>
+                        </div>
+                        <div class="block-gradient">
+                        </div>
+                        <div class="item-more-detail text-center cursor-pointer">
+                            <span class="text-primary">Xem thêm </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button class="custom-prev"><i class="fa-solid fa-arrow-left"></i></button>
+                <button class="custom-next"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script src="{{ url_for('static', filename='js/slickyCarousel.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bookDetail.js') }}"></script>
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Slick JS -->
+    <script type="text/javascript"
+            src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+{% endblock %}
