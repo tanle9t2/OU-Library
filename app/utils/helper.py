@@ -1,0 +1,1 @@
+FORMAT_BOOK_TEXT = ["Bìa cứng", "Bìa mềm"]
