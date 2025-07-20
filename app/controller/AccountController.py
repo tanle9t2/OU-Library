@@ -39,7 +39,7 @@ def login_process():
         if u:
             login_user(u)
 
-            return redirect(url_for('index.index'))
+            return redirect(url_for('index.search_main'))
         else:
             err_msg = "Tên đăng nhập hoặc mật khẩu không đúng!"
 
