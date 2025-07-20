@@ -1,4 +1,3 @@
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -6,7 +5,8 @@ from urllib.parse import quote
 
 from dotenv import dotenv_values, load_dotenv
 import cloudinary
-from flask_login import LoginManager
+# from flask_login import LoginManager
+
 app = Flask(__name__)
 load_dotenv()
 
@@ -37,5 +37,5 @@ app.config["STATISTIC_REVEN_PAGE_SIZE"] = 5
 app.config["BOOK_PAGE_SIZE"] = 7
 
 db = SQLAlchemy(app=app)
-login = LoginManager(app)
+# login = LoginManager(app)
 
