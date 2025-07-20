@@ -4,7 +4,6 @@ import threading
 from app import login
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from sendgrid import SendGridAPIClient
-from app import SENDGRID_API_KEY
 
 from app.dao.UserDao import is_valid_email
 from app.model.User import UserRole
@@ -17,7 +16,7 @@ account_bp = Blueprint('account', __name__)
 
 def send_email_async(message):
     try:
-        sg = SendGridAPIClient(api_key=SENDGRID_API_KEY)
+        sg = SendGridAPIClient(api_key="12")
         sg.send(message)
     except Exception as e:
         print(f"Lỗi khi gửi email: {str(e)}")

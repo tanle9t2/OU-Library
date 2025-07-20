@@ -3,6 +3,10 @@ from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
 from app.dao.UserDao import get_user_by_id
 
+from flask import Flask, redirect, url_for, session, render_template
+from flask_dance.contrib.google import make_google_blueprint, google
+import os
+from app import app
 from flask_login import current_user
 
 app.register_blueprint(account_bp, url_prefix='/account')
@@ -12,10 +16,6 @@ app.register_blueprint(index_bp, url_prefix='/')
 def get_by_id(user_id):
     return get_user_by_id(user_id)
 
-from flask import Flask, redirect, url_for, session, render_template
-from flask_dance.contrib.google import make_google_blueprint, google
-import os
-from app import app
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -34,12 +34,10 @@ app.register_blueprint(google_bp, url_prefix="/login")
 
 @app.route("/")
 def index():
-    if not google.authorized:
-        return '<a href="/login/google?prompt=select_account">Đăng nhập với Google</a>'
     # Nếu đã đăng nhập, hiển thị trang chính luôn
     resp = google.get("/oauth2/v2/userinfo")
-    if not resp.ok:
-        return "Không lấy được thông tin người dùng", 400
+    # if not resp.ok:
+    #     return "Không lấy được thông tin người dùng", 400
     user_info = resp.json()
     name = user_info.get("name")
     email = user_info.get("email")
