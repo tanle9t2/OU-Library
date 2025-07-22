@@ -2,7 +2,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 from urllib.parse import quote
-
 from dotenv import dotenv_values, load_dotenv
 import cloudinary
 from flask_login import LoginManager
