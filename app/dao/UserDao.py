@@ -8,7 +8,7 @@ from sqlalchemy import and_
 import hashlib
 from app import db
 import cloudinary.uploader
-from app.model.User import UserRole
+from app.model.User import UserRole, UserType
 import json
 from app.model.User import User
 from sqlalchemy import or_, select
@@ -16,7 +16,8 @@ from sqlalchemy.orm import joinedload
 import validators
 
 
-def auth_user(identifier, password, role=None):
+
+def auth_user(identifier, password, role=None, user_type=None):
     # Mã hóa password
     password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
 
@@ -36,11 +37,14 @@ def auth_user(identifier, password, role=None):
     if role:
         query = query.filter(User.user_role == role)
 
+    if user_type:
+        query = query.filter(User.user_type == user_type)
+
     # Trả về User nếu tồn tại
     return query.first()
 
 def add_user(first_name, last_name, username, password, email, phone_number, avt_url=None, sex=None,
-             date_of_birth=None, isActive=None, last_access=None):
+             date_of_birth=None, isActive=None, last_access=None,  role=UserRole.USER, user_type=None):
     password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
 
     # Tạo bản ghi User
@@ -55,7 +59,9 @@ def add_user(first_name, last_name, username, password, email, phone_number, avt
         phone_number=phone_number,
         date_of_birth=date_of_birth,
         isActive=isActive,
-        last_access=last_access
+        last_access=last_access,
+        user_role=role,
+        user_type=user_type
     )
     db.session.add(u)
     db.session.commit()
