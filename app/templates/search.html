@@ -83,7 +83,7 @@ Home Page
                     <div class="row list-book mt-4 pt-3 border-top">
                         {% if pagination.books %}
                         {% for b in pagination.books %}
-                        <a href="#" class="card col-md-3">
+                        <a href="/detail?bookId={{ b.book_id }}" class="card col-md-3">
 
                             <img class="card-img-top"
                                  src="{% if b.image_url %}{{ b.image_url }}{% else %} null {% endif %} "
