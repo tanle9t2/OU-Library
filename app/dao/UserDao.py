@@ -17,21 +17,23 @@ import validators
 
 
 
-def auth_user(identifier, password, role=None, user_type=None):
-    # Mã hóa password
-    password = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
-
-    if not identifier or not password:
+def auth_user(identifier, password=None, role=None, user_type=None):
+    if not identifier:
         return None
 
-    # Tìm người dùng theo username hoặc email, và khớp mật khẩu
     query = User.query.filter(
         or_(
             User.username == identifier.strip(),
             User.email == identifier.strip()
-        ),
-        User.password == password
+        )
     )
+
+    # Nếu login bằng username/password thông thường
+    if user_type != UserType.GOOGLE:
+        if not password:
+            return None
+        password_hash = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
+        query = query.filter(User.password == password_hash)
 
     # Nếu có kiểm tra vai trò
     if role:
@@ -40,8 +42,8 @@ def auth_user(identifier, password, role=None, user_type=None):
     if user_type:
         query = query.filter(User.user_type == user_type)
 
-    # Trả về User nếu tồn tại
     return query.first()
+
 
 def add_user(first_name, last_name, username, password, email, phone_number, avt_url=None, sex=None,
              date_of_birth=None, isActive=None, last_access=None,  role=UserRole.USER, user_type=None):
