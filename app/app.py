@@ -5,7 +5,7 @@ import os
 from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
-from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 from app import app, login
 from app.controller.AccountController import account_bp
@@ -16,7 +16,8 @@ from app.model.User import UserRole, UserType
 app.register_blueprint(account_bp, url_prefix='/account')
 app.register_blueprint(index_bp, url_prefix='/')
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 google_bp = make_google_blueprint(
     client_id=os.getenv("CLIENT_ID"),
@@ -41,6 +42,7 @@ def load_user(user_id):
 def abc_login():
     if not google.authorized:
         return redirect(url_for("google.login", _external=True))
+
 
     resp = google.get("/oauth2/v2/userinfo")
     if not resp.ok:
