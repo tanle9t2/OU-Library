@@ -113,4 +113,7 @@ def register_process():
 @account_bp.route("/logout")
 def logout_process():
     logout_user()
+
+    #change
+
     return redirect('/')
