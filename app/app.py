@@ -7,17 +7,29 @@ from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
 
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+from app import db
 from app import app, login
 from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
 
+# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_prefix=1
+)
+
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 app.register_blueprint(account_bp, url_prefix='/account')
 app.register_blueprint(index_bp, url_prefix='/')
 
-
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
 google_bp = make_google_blueprint(
     client_id=os.getenv("CLIENT_ID"),
@@ -30,6 +42,7 @@ google_bp = make_google_blueprint(
     redirect_url="/account/google/login",
     reprompt_consent=True
 )
+
 app.register_blueprint(google_bp, url_prefix="/login")
 
 
@@ -38,11 +51,15 @@ def load_user(user_id):
     return UserDao.get_user_by_id(user_id)
 
 
+@app.route("/monitor")
+def monitor():
+    return render_template("monitor.html")
+
+
 @app.route("/account/google/login")
 def abc_login():
     if not google.authorized:
-        return redirect(url_for("google.login", _external=True))
-
+        return redirect(url_for("google.login"))
 
     resp = google.get("/oauth2/v2/userinfo")
     if not resp.ok:
@@ -59,6 +76,11 @@ def abc_login():
     check = UserDao.check_exists_email(email=email)
 
     if check == 1:
+        user = UserDao.get_user_by_email(email)
+        if user and user.user_type != UserType.GOOGLE:
+            user.user_type = UserType.GOOGLE
+            user.avt_url = avt_url
+            db.session.commit()
         user = UserDao.auth_user(identifier=email, user_type=UserType.GOOGLE)
     else:
         # Tạo user mới
