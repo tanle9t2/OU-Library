@@ -1,11 +1,10 @@
-import pdb
 import string
 import random
 import os
 from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
-from werkzeug.debug import console
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app import app, login
 from app.controller.AccountController import account_bp
@@ -13,10 +12,21 @@ from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
 
+# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_prefix=1
+)
+
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 app.register_blueprint(account_bp, url_prefix='/account')
 app.register_blueprint(index_bp, url_prefix='/')
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
 google_bp = make_google_blueprint(
     client_id=os.getenv("CLIENT_ID"),
