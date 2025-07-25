@@ -1,3 +1,4 @@
+import pdb
 import string
 import random
 import os
@@ -11,17 +12,6 @@ from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
-
-# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
-app.wsgi_app = ProxyFix(
-    app.wsgi_app,
-    x_for=1,
-    x_proto=1,
-    x_host=1,
-    x_prefix=1
-)
-
-app.config['PREFERRED_URL_SCHEME'] = 'https'
 
 app.register_blueprint(account_bp, url_prefix='/account')
 app.register_blueprint(index_bp, url_prefix='/')
@@ -50,7 +40,7 @@ def load_user(user_id):
 @app.route("/account/google/login")
 def abc_login():
     if not google.authorized:
-        return redirect(url_for("google.login"))
+        return redirect(url_for("google.login", _external=True))
 
     resp = google.get("/oauth2/v2/userinfo")
     if not resp.ok:
