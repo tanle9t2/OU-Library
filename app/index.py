@@ -6,7 +6,6 @@ from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
 from werkzeug.debug import console
-
 from app import app, login
 from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
@@ -29,12 +28,18 @@ google_bp = make_google_blueprint(
     redirect_url="/account/google/login",
     reprompt_consent=True
 )
+
 app.register_blueprint(google_bp, url_prefix="/login")
 
 
 @login.user_loader
 def load_user(user_id):
     return UserDao.get_user_by_id(user_id)
+
+
+@app.route("/monitor")
+def monitor():
+    return render_template("monitor.html")
 
 
 @app.route("/account/google/login")
