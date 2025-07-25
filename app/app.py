@@ -5,6 +5,8 @@ import os
 from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
+
+
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app import db
 from app import app, login

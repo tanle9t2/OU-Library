@@ -5,11 +5,16 @@ from urllib.parse import quote
 from dotenv import dotenv_values, load_dotenv
 import cloudinary
 from flask_login import LoginManager
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.utils.helper import format_currency_filter, format_datetime_filter, format_date_VN
 
 app = Flask(__name__)
 load_dotenv()
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
 
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_URL = os.getenv("DB_URL")
