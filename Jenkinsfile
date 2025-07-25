@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'chore/CI-CD', url: 'https://github.com/tanle9t2/OU-Library.git'
+                git branch: 'main', url: 'https://github.com/tanle9t2/OU-Library.git'
             }
         }
         stage("Sonarqube Check") {
