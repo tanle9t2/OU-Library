@@ -7,6 +7,8 @@ from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
 
 
+
+
 from app import app, login
 from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
