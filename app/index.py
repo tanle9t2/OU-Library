@@ -6,7 +6,7 @@ from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
 from werkzeug.middleware.proxy_fix import ProxyFix
-
+from app import db
 from app import app, login
 from app.controller.AccountController import account_bp
 from app.controller.HomeController import index_bp
@@ -74,6 +74,11 @@ def abc_login():
     check = UserDao.check_exists_email(email=email)
 
     if check == 1:
+        user = UserDao.get_user_by_email(email)
+        if user and user.user_type != UserType.GOOGLE:
+            user.user_type = UserType.GOOGLE
+            user.avt_url = avt_url
+            db.session.commit()
         user = UserDao.auth_user(identifier=email, user_type=UserType.GOOGLE)
     else:
         # Tạo user mới
