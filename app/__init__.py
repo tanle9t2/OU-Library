@@ -1,21 +1,22 @@
-
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 from urllib.parse import quote
-
 from dotenv import dotenv_values, load_dotenv
 import cloudinary
 from flask_login import LoginManager
+
+from app.utils.helper import format_currency_filter, format_datetime_filter, format_date_VN
+
 app = Flask(__name__)
 load_dotenv()
 
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_URL = os.getenv("DB_URL")
-SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+# SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 
 
-app.secret_key = "8923yhr9fuwnsejksnpokff@$I_I@$)opfk"
+app.secret_key = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = DB_URL % quote(DB_PASSWORD)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
 
@@ -39,3 +40,7 @@ app.config["BOOK_PAGE_SIZE"] = 7
 db = SQLAlchemy(app=app)
 login = LoginManager(app)
 
+# Register the custom filter in Jinja2
+app.jinja_env.filters['currency'] = format_currency_filter
+app.jinja_env.filters['datetime'] = format_datetime_filter
+app.jinja_env.filters['date'] = format_date_VN()

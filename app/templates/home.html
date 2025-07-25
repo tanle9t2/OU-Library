@@ -1,0 +1,168 @@
+{% extends 'layout/base.html' %}
+
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+{% endblock %}
+{% block js %}
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="row gx-2 pt-3">
+            <div class="col-8">
+                <div id="carouselExample" class="carousel slide h-100">
+                    <div class="carousel-inner rounded">
+                        <div class="carousel-item active">
+                            <img src="https://cdn0.fahasa.com/media/magentothem/banner7/Diamond_1124_BGV_Resize_Slide_840x320_2.png"
+                                 class="d-block w-100 rounded" alt="...">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://cdn0.fahasa.com/media/magentothem/banner7/Diamond_1124_MCBooks_Resize_Slide_840x320.jpg"
+                                 class="d-block w-100 rounded" alt="...">
+                        </div>
+                        <div class="carousel-item">
+                            <img src="https://cdn0.fahasa.com/media/magentothem/banner7/Partnership_T11_840x320.jpg"
+                                 class="d-block w-100 rounded" alt="...">
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample"
+                            data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample"
+                            data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="d-flex flex-column h-100">
+                    <div>
+                        <img class="rounded img-fluid w-100"
+                             src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/BtaskeeT11_392x156.jpg" alt="">
+                    </div>
+                    <div>
+                        <img class="rounded img-fluid w-100"
+                             src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/Banmai_BannerBanve392x156.png"
+                             alt="">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row pt-2 gx-2">
+            <div class="col-3">
+                <img class="rounded img-fluid w-100"
+                     src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/TrangCTT11_1124_20_11_Resize_310X210_2.png"
+                     alt="">
+            </div>
+            <div class="col-3">
+                <img class="rounded img-fluid w-100"
+                     src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/TrangDenBan_310x210_2.jpg"
+                     alt="">
+            </div>
+            <div class="col-3">
+                <img class="rounded img-fluid w-100"
+                     src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/SmallBanner_T11_310x210_1.png"
+                     alt="">
+            </div>
+            <div class="col-3">
+                <img class="rounded img-fluid w-100"
+                     src="https://cdn0.fahasa.com/media/wysiwyg/Thang-11-2024/Trang20_11_SmallBanner_T11_310x210_1.jpg"
+                     alt="">
+            </div>
+        </div>
+
+        <div class="home-section py-0 rounded" id="home_category_section">
+            <div class="d-flex home_category_heading">
+            </div>
+            <div class="row home_product_container">
+
+            </div>
+        </div>
+
+
+
+        <div class="home-section">
+            <div class="f-flex">
+                <div class="fs-3 pl-3 pt-4 pb-4 fw-bolder">Sách bán chạy</div>
+            </div>
+            <div class="row pl-4 pr-4 pb-3">
+
+            </div>
+        </div>
+
+        <div class="home-section">
+            <div class="f-flex">
+                <div class="fs-3 pl-3 pt-2 pb-2 fw-bolder">Mới ra mắt</div>
+            </div>
+            <div class="row">
+                <div class="col-4">
+                    <div class="d-flex flex-column justify-content-center h-100">
+                        <div class="w-100">
+                            <img class="img-fluid w-100 h-100"
+                                 src="https://res.cloudinary.com/dq27ted4k/image/upload/v1731750144/ydppggyww4sjmxspsfar.png"
+                                 alt="">
+                        </div>
+                        <div class="h2">Sách mới</div>
+                        <div class="h1 text-red">Nhanh tay đặt hàng</div>
+                    </div>
+                </div>
+                <div class="col-8">
+                    <div class="row home_product_container">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row pt-3 home-section pb-4">
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/5_NCC_McBook_115x115.png"
+                         alt="">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/NCC_AlphaBooks_115x115.png"
+                         alt="">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/3_NCC_TanViet_115x115.png"
+                         alt="">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/9_NCC_MinhLong_115x115.png"
+                         alt="">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/7_NCC_SGBook_115x115.png"
+                         alt="">
+                </div>
+            </div>
+            <div class="col-2">
+                <div class="d-flex justify-content-around">
+                    <img class="rounded"
+                         src="https://cdn0.fahasa.com/media/wysiwyg/Hien_UI/LogoNCC/8_NCC_ZenBooks_115x115.png"
+                         alt="">
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
