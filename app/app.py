@@ -29,7 +29,7 @@ app.config['PREFERRED_URL_SCHEME'] = 'https'
 app.register_blueprint(account_bp, url_prefix='/account')
 app.register_blueprint(index_bp, url_prefix='/')
 
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
 google_bp = make_google_blueprint(
     client_id=os.getenv("CLIENT_ID"),
