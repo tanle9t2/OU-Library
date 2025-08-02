@@ -3,13 +3,9 @@ from datetime import datetime
 from xml.dom import NotFoundErr
 
 from flask import Blueprint, request, jsonify
-from flask_login import current_user
 
 from app import app
-from app.authentication.login_required import employee_manager_warehouse_required, \
-    employee_manager_warehouse_required_api
 from app.dao.BookDAO import find_by_id, create_book, count_book_sell, search_book
-from app.exception.NotFoundError import NotFoundError
 
 book_rest_bp = Blueprint('book_rest', __name__)
 
