@@ -114,3 +114,31 @@ def register_process():
 def logout_process():
     logout_user()
     return redirect('/')
+
+
+
+@account_bp.route('/admin-login', methods=['GET', 'POST'])
+def admin_login():
+    err_msg = ''
+    if request.method == 'POST':
+        identifier = request.form.get('username')
+        password = request.form.get('password')
+
+        user = UserDao.auth_user(identifier=identifier, password=password)
+        if user:
+            if user.user_role == UserRole.LIBRARIAN:
+                login_user(user=user)
+                return redirect('/admin/')
+            else:
+                err_msg = "Vai trò không hợp lệ!"
+        else:
+            err_msg = "Tên đăng nhập hoặc mật khẩu không đúng!"
+
+    return render_template('admin-login.html', err_msg=err_msg)
+
+
+@account_bp.route("/admin-logout")
+def admin_logout():
+    logout_user()
+    return redirect(url_for('account.admin_login'))
+

@@ -28,14 +28,12 @@ def auth_user(identifier, password=None, role=None, user_type=None):
         )
     )
 
-    # Nếu login bằng username/password thông thường
     if user_type != UserType.GOOGLE:
         if not password:
             return None
         password_hash = hashlib.md5(password.strip().encode('utf-8')).hexdigest()
         query = query.filter(User.password == password_hash)
 
-    # Nếu có kiểm tra vai trò
     if role:
         query = query.filter(User.user_role == role)
 
