@@ -1,4 +1,7 @@
-from app import db
+import math
+
+from app import db, app
+from app.admin import book_management
 from app.authentication.login_required import admin_required
 from app.model.Book import BookFormat
 from flask import Blueprint
@@ -32,13 +35,6 @@ def update_book(book_id):
         book.author = updated_data.get('author', book.author)
         book.book_gerne_id = updated_data.get('gerne', book.book_gerne_id)
 
-        barcode = updated_data.get('barcode')
-        if barcode:
-            existing_book = Book.query.filter_by(barcode=barcode).first()
-            if existing_book and existing_book.book_id != book.book_id:
-                return jsonify({'success': False, 'message': f"Barcode '{barcode}' already exists"}), 400
-            book.barcode = barcode
-
         publisher_name = updated_data.get('publisher')
         if publisher_name:
             publisher = Publisher.query.filter_by(publisher_name=publisher_name).first()
@@ -51,7 +47,10 @@ def update_book(book_id):
         if format_value:
             try:
                 if isinstance(format_value, int):  # Nếu là số
-                    book.format = BookFormat(format_value)  # Chuyển trực tiếp từ số sang Enum
+                    if format_value == 1:
+                        book.format = "Bìa Cứng"
+                    else:
+                        book.format = "Bìa Mềm"
                 elif format_value.startswith('BookFormat.'):  # Nếu là chuỗi dạng 'BookFormat.BIA_MEM'
                     book.format = BookFormat[format_value.split('BookFormat.')[1]]
                 else:  # Nếu là chuỗi tên Enum như 'BIA_MEM'
@@ -88,3 +87,35 @@ def delete_book(book_id):
 @admin_required
 def employee_profile():
     return render_template("/employee/employeeProfile.html")
+
+
+@employee_bp.route("/book-manager")
+@admin_required
+def book_manager():
+    gerne_id = request.args.get('gerne_id', type=int)
+    kw = request.args.get('kw')
+    price_start = request.args.get('price_start', type=float)
+    price_end = request.args.get('price_end', type=float)
+
+    if gerne_id == 1:
+        stats = book_management(kw=kw, price_start=price_start, price_end=price_end)
+    else:
+        stats = book_management(gerne_id, kw=kw, price_start=price_start, price_end=price_end)
+    page = int(request.args.get('page', 1))
+    page_size = app.config['BOOK_PAGE_SIZE']
+    total = len(stats)
+
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    paginated_stats = stats[start_idx:end_idx]
+
+    # Render template
+    return render_template(
+        "/employee/employeeBookManager.html",
+        stats=paginated_stats, full_stats=stats, kw=kw, price_start=price_start, price_end=price_end,
+        books={
+            'current_page': page,
+            'total_page': math.ceil(total / page_size),
+            'pages': range(1, math.ceil(total / page_size) + 1),
+        }
+    )
