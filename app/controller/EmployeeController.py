@@ -1,6 +1,7 @@
 from app import db
 from app.authentication.login_required import employee_sale_required, employee_manager_warehouse_required, \
     employee_manager_required, employee_required, employee_manager_required_api
+from app.dao.RequestDAO import find_all_waiting_request, accept_request
 from app.model.Book import BookFormat
 from flask import Blueprint
 from flask import jsonify
@@ -14,12 +15,32 @@ from app.dao.PublisherDAO import find_all as find_all_publisher
 employee_bp = Blueprint('employee', __name__)
 
 
-
 @employee_bp.route("/add-products")
 @employee_manager_required
 def add_products_process():
     publishers = find_all_publisher()
     return render_template("employee/employeeAddProducts.html", publishers=publishers, formats=FORMAT_BOOK_TEXT)
+
+
+@employee_bp.route("/handle-borrowing")
+@employee_manager_required
+def handle_borrowing_request():
+    request_borrowing = find_all_waiting_request()
+    return render_template("admin/adminStatisticRevenue.html", request_borrowing=request_borrowing)
+
+
+@employee_bp.route("/accept-request/<book_request_id>", methods=["POST"])
+@employee_manager_required
+def handle_accept_request(book_request_id):
+    accept_request(book_request_id)
+    return redirect(url_for('employee.handle_borrowing_request'))
+
+
+@employee_bp.route("/cancel-request/<book_request_id>", methods=["POST"])
+@employee_manager_required
+def handle_cancel_request(book_request_id):
+    accept_request(book_request_id)
+    return redirect(url_for('employee.handle_borrowing_request'))
 
 
 @employee_bp.route('/update-book/<int:book_id>', methods=['POST'])
@@ -75,6 +96,7 @@ def update_book(book_id):
 
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
 
 @employee_bp.route('/delete-book/<int:book_id>', methods=['POST'])
 @employee_manager_required
