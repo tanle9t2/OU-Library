@@ -5,7 +5,9 @@ import os
 from flask import redirect, url_for, session, render_template
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
-
+from app.controller.EmployeeController import employee_bp
+from app.controller.rest.BookAPI import book_rest_bp
+from app.controller.rest.BookGerneAPI import book_gerne_rest_bp
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app import db
@@ -15,19 +17,6 @@ from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
 
-# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
-app.wsgi_app = ProxyFix(
-    app.wsgi_app,
-    x_for=1,
-    x_proto=1,
-    x_host=1,
-    x_prefix=1
-)
-
-app.config['PREFERRED_URL_SCHEME'] = 'https'
-
-app.register_blueprint(account_bp, url_prefix='/account')
-app.register_blueprint(index_bp, url_prefix='/')
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
@@ -43,13 +32,30 @@ google_bp = make_google_blueprint(
     reprompt_consent=True
 )
 
+# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_prefix=1
+)
+
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
+app.register_blueprint(account_bp, url_prefix='/account')
+app.register_blueprint(index_bp, url_prefix='/')
+app.register_blueprint(employee_bp, url_prefix='/employee')
+app.register_blueprint(book_gerne_rest_bp, url_prefix='/api/v1/bookGerne')
+
 app.register_blueprint(google_bp, url_prefix="/login")
+app.register_blueprint(book_rest_bp, url_prefix="/api/v1/book")
+
 
 
 @login.user_loader
 def load_user(user_id):
     return UserDao.get_user_by_id(user_id)
-
 
 
 @app.route("/monitor")
@@ -117,4 +123,5 @@ def logout():
 
 
 if __name__ == "__main__":
+    from app.admin import *
     app.run(debug=True)
