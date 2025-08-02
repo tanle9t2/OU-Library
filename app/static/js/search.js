@@ -4,9 +4,62 @@ $(document).ready(function () {
     handleSelectPrevButton()
     handleSelectNextButton()
     handleSelectPaginateButton()
+    handeSelectFilter("group-filter-genre", "genre")
+    handleExpandFilter("group-filter-genre")
+
+    handeSelectFilter("group-filter-publisher", "publisher")
+    handleExpandFilter("group-filter-publisher")
 });
 
 const url = new URL(window.location.href);
+
+function handleExpandFilter(groupFilter) {
+    const $group = $(`#${groupFilter}`)
+
+    $group.find("p").on('click', function () {
+        const $ul = $group.find("ul");
+        const isCollapsed = $ul.css("height") === "150px" || $ul.height() <= 150;
+
+        if (isCollapsed) {
+            $ul.css("height", "auto");
+            $(this).text("Thu hẹp");
+        } else {
+            $ul.css("height", "150px");
+            $(this).text("Mở rộng");
+        }
+    });
+}
+
+function handeSelectFilter(groupFilter, param) {
+    const $group = $(`#${groupFilter}`)
+
+    $group.find('li').on('click', function () {
+        const value = $(this).find('input').attr('value'); // or .val() for form input values
+        if (!value) return; // safeguard if no input or value
+
+        const url = new URL(window.location.href);
+        let urlValue = url.searchParams.get(param); // assumes param is defined
+
+        if (urlValue) {
+            let values = urlValue.split(',');
+            if (values.includes(value)) {
+                values = values.filter(v => v !== value);
+            } else {
+                // Add the value
+                values.push(value);
+            }
+            urlValue = values.join(',');
+        } else {
+            urlValue = value;
+        }
+        url.searchParams.set(param, urlValue);
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+
+    });
+
+
+}
 
 function handleSelectOrder(nameNode, param) {
     const $menu = $(`.dropdown-menu-${nameNode}`);
@@ -23,7 +76,6 @@ function handleSelectOrder(nameNode, param) {
         window.location.href = url.toString();
     });
 }
-
 
 
 function handleSelectPrevButton() {

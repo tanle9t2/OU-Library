@@ -56,7 +56,7 @@ def count_book_sell(book_id):
     return result.sold if result.sold else 0
 
 
-def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=None, page=1):
+def search_book(keyword=None, order=None, genres=None, publishers=None, limit=None, page=1):
     query = Book.query
     if keyword:
         query = query.filter(
@@ -72,8 +72,11 @@ def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=N
             query = query.order_by(desc(getattr(Book, "created_at")))
         elif order == 'oldest':
             query = query.order_by(asc(getattr(Book, "created_at")))
-    if gerne_id:
-        query = query.filter(Book.book_gerne_id == gerne_id)
+    if genres:
+        query = query.filter(Book.book_gerne_id.in_(genres))
+
+    if publishers:
+        query = query.filter(Book.publisher_id.in_(publishers))
 
     start = (page - 1) * limit
     end = start + limit
