@@ -13,6 +13,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from app import db
 from app import app, login
 from app.controller.AccountController import account_bp
+from app.controller.BookController import book_controller_bp
 from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
@@ -51,6 +52,8 @@ app.register_blueprint(book_gerne_rest_bp, url_prefix='/api/v1/bookGerne')
 app.register_blueprint(google_bp, url_prefix="/login")
 app.register_blueprint(book_rest_bp, url_prefix="/api/v1/book")
 
+
+app.register_blueprint(book_controller_bp, url_prefix="/book")
 
 
 @login.user_loader
