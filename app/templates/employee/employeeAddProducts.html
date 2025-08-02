@@ -64,8 +64,7 @@
                                                         </div>
                                                         Tải ảnh lên
                                                     </label>
-                                                    <input class="d-none" type="file" id="book-image" name='book-image'
-                                                           multiple>
+                                                    <input class="d-none" type="file" id="book-image" name='book-image'>
                                                 </div>
                                             </div>
                                             <p id="error-image" class="m-0 message-error font-weight-bold">
@@ -73,6 +72,7 @@
                                                 nhất
                                                 1 ảnh </p>
                                         </div>
+                                        <input class="d-none" type="file" id="book-image" name="book-image">
                                     </div>
                                     <div class="form-group">
                                         <label class="label-name" for="product-name">Tên sách</label>
@@ -103,7 +103,7 @@
                                                 <div class="modal-header">Chọn thể loại sách</div>
 
                                                 <div class="search-bar">
-                                                    <input type="text" id="searchInput" placeholder="Tìm thể loại"
+                                                    <input readonly type="text" id="searchInput" placeholder="Tìm thể loại"
                                                            oninput="filterMenuItems()"/>
                                                 </div>
 
@@ -112,12 +112,6 @@
                                                         <div class="menu-item" onclick="toggleSubMenu(1, this)">
                                                             Sách Trong Nước
                                                         </div>
-                                                    </div>
-                                                    <div class="menu-column hidden" id="col2">
-
-                                                    </div>
-                                                    <div class="menu-column hidden" id="col3">
-
                                                     </div>
                                                 </div>
 
@@ -198,20 +192,6 @@
                         <div class="row icon-examples">
                             <div class="form-container">
                                 <form>
-
-                                    <div class="group-extend-atrtribute">
-                                        <div class="form-group">
-                                            <label class="attribute-name">Thuộc tính khác</label>
-                                            <div class="dropdown-container attribute-value">
-                                                <input disabled type="text" id="genreSearch"
-                                                       class="m-0 dropdown-search product-publisher"
-                                                       name="dropdown-search"
-                                                       autocomplete="off">
-                                                <div class="dropdown-list" id="genreList">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                     <div class="form-group">
                                         <label class="attribute-name" for="product-name">Nhà xuất bản</label>
                                         <div class="attribute-value input-outline

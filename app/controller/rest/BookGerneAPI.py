@@ -6,27 +6,16 @@ from app.dao.BookGerneDAO import find_all
 book_gerne_rest_bp = Blueprint('book_gerne_rest', __name__)
 
 
-
-@book_gerne_rest_bp.route('/', methods=['GET'])
+@book_gerne_rest_bp.route('/all', methods=['GET'])
 def get_all_gerne():
-    data = find_all()
+    genres = find_all()
+    genres_data = [genre.to_dto() for genre in genres]
+
     return jsonify({
         "message": "SUCCESS",
         "status": 200,
-        'data': data
+        'data': genres_data
     })
-
-
-@book_gerne_rest_bp.route('/', methods=['GET'])
-def get_book_gerne():
-    gerne_id = request.args.get('gerneId')
-    data = get_depth_gerne(int(gerne_id))
-    return jsonify({
-        "message": "SUCCESS",
-        "status": 200,
-        'data': data
-    })
-
 
 @book_gerne_rest_bp.route('/<book_gerne_id>/attributes', methods=['GET'])
 def get_attributes(book_gerne_id):
