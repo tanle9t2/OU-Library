@@ -1,7 +1,7 @@
 from app import db
 from app.authentication.login_required import employee_sale_required, employee_manager_warehouse_required, \
     employee_manager_required, employee_required, employee_manager_required_api
-from app.dao.RequestDAO import find_all_waiting_request, accept_request
+from app.dao.RequestDAO import find_all_waiting_request, accept_request, cancel_request
 from app.model.Book import BookFormat
 from flask import Blueprint
 from flask import jsonify
@@ -25,8 +25,19 @@ def add_products_process():
 @employee_bp.route("/handle-borrowing")
 @employee_manager_required
 def handle_borrowing_request():
-    request_borrowing = find_all_waiting_request()
-    return render_template("admin/adminStatisticRevenue.html", request_borrowing=request_borrowing)
+    all_query_params = dict(request.args)
+
+    limit = int(all_query_params.pop('limit', 5))
+    page = int(all_query_params.pop('page', 1))
+    range_date = all_query_params.pop('date', None)
+    order = all_query_params.pop('order', None)
+
+    request_borrowing = find_all_waiting_request(page=page, limit=limit, date=range_date, order=order)
+
+    return render_template("admin/adminHandleRequest.html",
+                           nextPage=request_borrowing['current_page'] + 1,
+                           prevPage=request_borrowing['current_page'] - 1,
+                           request_borrowing=request_borrowing)
 
 
 @employee_bp.route("/accept-request/<book_request_id>", methods=["POST"])
@@ -39,7 +50,8 @@ def handle_accept_request(book_request_id):
 @employee_bp.route("/cancel-request/<book_request_id>", methods=["POST"])
 @employee_manager_required
 def handle_cancel_request(book_request_id):
-    accept_request(book_request_id)
+    note = request.form.get("note")
+    cancel_request(book_request_id, note)
     return redirect(url_for('employee.handle_borrowing_request'))
 
 

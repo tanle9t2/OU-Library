@@ -2,12 +2,25 @@ import math
 
 from app import db
 from app.model.Request import Request, Status
+from sqlalchemy import extract, desc, asc
 
 
-def find_all_waiting_request(page=0, limit=5):
+def find_all_waiting_request(page=1, limit=5, order=None, date=None):
     query = Request.query.filter(Request.status == Status.WAIT)
 
-    start = page * limit
+    if date:  # assuming date is a datetime.date or datetime.datetime object
+        date_arr = date.split('-')
+        query = query.filter(
+            extract('month', Request.created_at) == date_arr[1],
+            extract('year', Request.created_at) == date_arr[0]
+        )
+    if order:
+        if order == 'latest':
+            query = query.order_by(desc(getattr(Request, "created_at")))
+        elif order == 'oldest':
+            query = query.order_by(asc(getattr(Request, "created_at")))
+
+    start = (page - 1) * limit
     end = start + limit
     query_count = query
     total = query_count.count()
