@@ -37,6 +37,7 @@ class Book(db.Model):
     book_gerne = db.relationship('BookGerne', back_populates='books', lazy=True)
     publisher_info = db.relationship('Publisher', back_populates='publisher_books_relation', uselist=False,
                                      foreign_keys=[publisher_id], lazy=True, cascade='all')
+    borrowing = Column(Integer, default=0)
 
     def to_dict(self):
         return {
@@ -55,6 +56,7 @@ class Book(db.Model):
             'format': self.format,
             "publisher": self.publisher_info.to_dict() if self.publisher_info else None,
             'book_gerne': self.book_gerne.to_dict(),
+            'borrowing': self.borrowing,
         }
 
     def to_dto(self):
@@ -73,6 +75,7 @@ class Book(db.Model):
             "weight": self.weight,
             'format': self.format,
             "publisher": "Kim đồng",
+            "borrowing": self.borrowing,
         }
 
     def __str__(self):

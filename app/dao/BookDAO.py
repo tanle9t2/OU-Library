@@ -1,10 +1,14 @@
 from sqlalchemy import desc, asc, or_
 from sqlalchemy.sql import text
 
-from app.model.Book import Book
+from app.exception.NotFoundException import NotFoundError
+from app.model.Book import Book, BookFormat
 from app.model.BookGerne import BookGerne
 from app import app, db
 import math
+import cloudinary
+
+from app.model.Publisher import Publisher
 
 
 def find_by_id(id):
@@ -92,3 +96,37 @@ def search_book(keyword=None, order=None, genres=None, publishers=None, limit=No
         'pages': total_page,
         'books': books
     }
+
+
+def create_book(data):
+    book = Book(title=data['title'],
+                author=data['author'],
+                price=data['price'],
+                num_page=data['num_page'],
+                description=data['description'],
+                release_date=data['release_date'],
+                weight=data['weight'],
+                book_gerne_id=data['book_gerne_id'],
+                dimension=data['dimension'],
+                barcode=data['barcode'])
+
+    book_images = data['book_images']
+    if data['publisher']:
+        publisher = Publisher.query.get(data['publisher'])
+        if publisher is None: raise NotFoundError('Publisher not found')
+        book.publisher_id = publisher.publisher_id
+
+    if data['format'] == 1:
+        book.format = "Bìa Cứng"
+    else:
+        book.format = "Bìa Mềm"
+
+    if book_images:
+        for image in book_images:
+            res = cloudinary.uploader.upload(image)
+            image_url = res['secure_url']
+            book.image_url = image_url
+
+
+    db.session.add(book)
+    db.session.commit()

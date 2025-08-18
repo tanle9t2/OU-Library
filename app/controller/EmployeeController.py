@@ -1,12 +1,11 @@
 from app import db
-from app.authentication.login_required import employee_sale_required, employee_manager_warehouse_required, \
-    employee_manager_required, employee_required, employee_manager_required_api
+from app.authentication.login_required import admin_required
+from app.dao.RequestDAO import find_all_waiting_request, accept_request, cancel_request
 from app.model.Book import BookFormat
-from flask import Blueprint
+from flask import Blueprint, redirect, url_for
 from flask import jsonify
-from flask import render_template, redirect, url_for, request
+from flask import render_template, request
 from app.utils.helper import FORMAT_BOOK_TEXT
-from app.model.BookGerne import BookGerne
 from app.model.Book import Book
 from app.model.Publisher import Publisher
 from app.dao.PublisherDAO import find_all as find_all_publisher
@@ -14,16 +13,47 @@ from app.dao.PublisherDAO import find_all as find_all_publisher
 employee_bp = Blueprint('employee', __name__)
 
 
-
 @employee_bp.route("/add-products")
-@employee_manager_required
 def add_products_process():
     publishers = find_all_publisher()
     return render_template("employee/employeeAddProducts.html", publishers=publishers, formats=FORMAT_BOOK_TEXT)
 
 
+@employee_bp.route("/handle-borrowing")
+@admin_required
+def handle_borrowing_request():
+    all_query_params = dict(request.args)
+
+    limit = int(all_query_params.pop('limit', 5))
+    page = int(all_query_params.pop('page', 1))
+    range_date = all_query_params.pop('date', None)
+    order = all_query_params.pop('order', None)
+
+    request_borrowing = find_all_waiting_request(page=page, limit=limit, date=range_date, order=order)
+
+    return render_template("admin/adminHandleRequest.html",
+                           nextPage=request_borrowing['current_page'] + 1,
+                           prevPage=request_borrowing['current_page'] - 1,
+                           request_borrowing=request_borrowing)
+
+
+@employee_bp.route("/accept-request/<book_request_id>", methods=["POST"])
+@admin_required
+def handle_accept_request(book_request_id):
+    accept_request(book_request_id)
+    return redirect(url_for('employee.handle_borrowing_request'))
+
+
+@employee_bp.route("/cancel-request/<book_request_id>", methods=["POST"])
+@admin_required
+def handle_cancel_request(book_request_id):
+    note = request.form.get("note")
+    cancel_request(book_request_id, note)
+    return redirect(url_for('employee.handle_borrowing_request'))
+
+
 @employee_bp.route('/update-book/<int:book_id>', methods=['POST'])
-@employee_manager_required
+@admin_required
 def update_book(book_id):
     try:
         updated_data = request.get_json()
@@ -77,7 +107,7 @@ def update_book(book_id):
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @employee_bp.route('/delete-book/<int:book_id>', methods=['POST'])
-@employee_manager_required
+@admin_required
 def delete_book(book_id):
     book = Book.query.get(book_id)
     if not book:
@@ -89,6 +119,6 @@ def delete_book(book_id):
 
 
 @employee_bp.route("/profile")
-@employee_required
+@admin_required
 def employee_profile():
     return render_template("/employee/employeeProfile.html")

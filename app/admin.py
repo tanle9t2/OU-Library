@@ -8,19 +8,8 @@ from flask_admin import BaseView, expose, AdminIndexView
 from flask_login import logout_user, current_user
 from flask import redirect, request, render_template, url_for
 
+from app.authentication.login_required import admin_required
 from app.model.User import UserRole
-
-
-def admin_required(f):
-    @wraps(f)  # Sử dụng functools.wraps để preserve metadata
-    def wrap(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return redirect(url_for('account.admin_login'))
-        if current_user.user_role != UserRole.LIBRARIAN:
-            return redirect(url_for('account.admin_login'))
-        return f(*args, **kwargs)
-    return wrap
-
 
 class AdminHome(AdminIndexView):
     @expose("/")
