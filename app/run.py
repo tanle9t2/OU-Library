@@ -8,22 +8,19 @@ from flask import redirect, url_for, session, render_template, request, jsonify
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
 
+from app.controller.EmployeeController import employee_bp
+from app.controller.rest.BookAPI import book_rest_bp
+from app.controller.rest.BookGerneAPI import book_gerne_rest_bp
+
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app import db
 from app import app, login
 from app.controller.AccountController import account_bp
+from app.controller.BookController import book_controller_bp
 from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
 
-# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
-app.wsgi_app = ProxyFix(
-    app.wsgi_app,
-    x_for=1,
-    x_proto=1,
-    x_host=1,
-    x_prefix=1
-)
 
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
@@ -44,7 +41,27 @@ google_bp = make_google_blueprint(
     reprompt_consent=True
 )
 
+# QUAN TRỌNG: Cấu hình để Flask hiểu ngrok proxy
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_for=1,
+    x_proto=1,
+    x_host=1,
+    x_prefix=1
+)
+
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
+app.register_blueprint(account_bp, url_prefix='/account')
+app.register_blueprint(index_bp, url_prefix='/')
+app.register_blueprint(employee_bp, url_prefix='/employee')
+app.register_blueprint(book_gerne_rest_bp, url_prefix='/api/v1/bookGerne')
+
 app.register_blueprint(google_bp, url_prefix="/login")
+app.register_blueprint(book_rest_bp, url_prefix="/api/v1/book")
+
+
+app.register_blueprint(book_controller_bp, url_prefix="/book")
 
 
 @login.user_loader
@@ -72,8 +89,7 @@ def abc_login():
     password = ''.join(random.choices(string.digits, k=8))
     first_name = user_info.get("given_name", "")
     last_name = user_info.get("family_name", "")
-    avt_url = user_info.get(
-        "picture") or 'https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg'
+    avt_url = user_info.get("picture") or 'https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg'
 
     check = UserDao.check_exists_email(email=email)
 
@@ -148,4 +164,5 @@ def subscribe_topic():
 
 
 if __name__ == "__main__":
+    from app.admin import *
     app.run(debug=True)
