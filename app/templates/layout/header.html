@@ -28,27 +28,14 @@
                 <i class="fa-regular fa-bell"></i>
                 <span>Thông báo</span>
                 <div class="sub-notification">
-                    <p class="sub-notification-header">
+                    <p class="sub-notification-header mb-0">
                         <span> <i class="fa-regular fa-bell"></i></span>
                         Thông báo
                     </p>
                     {% if current_user.is_authenticated %}
-                        <div class="sub-notification-menu text-center pl-4 pt-4 pr-4">
-                            <img src="{{ current_user.avt_url }}" style="margin-left: auto; margin-right: auto;"
-                                 width="100"
-                                 class="rounded-circle"/>
-                            <a class="nav-link text-info" href="/">
-                                Chào {{ current_user.full_name }}
-                            </a>
-                        </div>
-                        <div class="pl-4 pb-4 pr-4 ">
-                            <!--                        <button class="btn mb-3 pt-1 pb-1 pr-3 pl-3 btn-primary btn-large" id="profileButton">-->
-                            <!--                            <a class="text-decoration-none text-white" href="javascript:void(0)">Hồ sơ</a>-->
-                            <!--                        </button>-->
-                            <button class="btn mb-3 pt-1 pb-1 pr-3 pl-3 btn-primary btn-large">
-                                <a class="text-decoration-none text-white" href="/account/logout">Đăng xuất</a>
-                            </button>
-                        </div>
+                        <ul class="notification-list" style="width:250px; list-style:none; padding:0; margin:0;">
+
+                        </ul>
                     {% else %}
                         <div class="sub-notification-menu text-center pl-4 pt-4 pr-4">
                             <span class="sub-notification-menu-icon"></span>
@@ -117,6 +104,77 @@
     </nav>
 </div>
 
+{% block js %}
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+<script>
+  // Initialize Firebase
+  const firebaseConfig = {
+      apiKey: "AIzaSyCHRHQfuw81Cs1u8I5ep5PLJs3OuSsKaMY",
+      authDomain: "ou-library.firebaseapp.com",
+      projectId: "ou-library",
+      storageBucket: "ou-library.firebasestorage.app",
+      messagingSenderId: "739534297897",
+      appId: "1:739534297897:web:d4a55b6044d2b31a2d3538",
+      measurementId: "G-XQ1X2C5CBJ"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  const messaging = firebase.messaging();
+
+  {% if current_user.is_authenticated %}
+  (async () => {
+      const userId = {{ current_user.user_id }};
+
+      // 3. Get FCM token
+      try {
+           const registration = await navigator.serviceWorker.register('/static/js/firebase-messaging-sw.js');
+           const token = await messaging.getToken({
+            vapidKey: "BNrMUjR8ZcKGu5GFXoJQPnHc_mJg019HB3Ne00j39kfiqA8fTUlz-0-EzIwMYbpha0Ea4u1UzEUxYMYmSKgTS2o",
+            serviceWorkerRegistration: registration
+        });
+          console.log("FCM Token:", token);
+
+
+          await fetch("/subscribe_topic", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId, token })
+          });
+          console.log("Subscribed user to FCM topic successfully!");
+      } catch (err) {
+          console.error("FCM subscription error:", err);
+      }
+
+      // 4. Listen for foreground messages
+      messaging.onMessage((payload) => {
+          const listNotifications = document.querySelector('.notification-list')
+          if (payload.notification) {
+            const html = `
+              <li style="background-color: #f0f0f0; padding: 6px; border-radius: 4px;">
+                <span class="font-weight-bold px-2">${payload.notification.title}</span>
+                <span class="px-2">${payload.notification.body}</span>
+              </li>
+            `;
+
+            listNotifications.insertAdjacentHTML("afterbegin", html);
+             Toastify({
+                text: `Bạn có thông báo mới `,
+                duration: 4000, // 4s
+                close: true,    // show close button
+                gravity: "top", // `top` or `bottom`
+                position: "right", // `left`, `center`, or `right`
+                backgroundColor: "#4caf50", // green toast (customize)
+                stopOnFocus: true, // pause when hovered
+              }).showToast();
+          }
+      });
+
+  })();
+  {% endif %}
+</script>
+
+{% endblock %}
 
 
 

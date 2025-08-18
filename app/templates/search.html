@@ -23,21 +23,54 @@ Home Page
                         <div class="current-gerne cursor-pointer">
 
                         </div>
-                        <div id="group-filter">
-                            <ul class="text-decoration-none list-unstyled box-filter pl-2">
+                        <div id="group-filter-genre">
+                            <ul
+                                    class="text-decoration-none list-unstyled box-filter pl-2">
                                 {% for c in genres %}
                                 <li class="d-flex align-items-center">
                                     <label class="cursor-pointer">
-                                        <input type="checkbox" value="{{ c.id }}"/>
+                                        <input type="checkbox"
+                                               value="{{ c.book_gerne_id }}"
+                                               {% if genre_params and c.book_gerne_id in genre_params %}checked{% endif
+                                               %}>
+
                                         <span>{{ c.name }}</span>
                                     </label>
                                 </li>
                                 {% endfor %}
                             </ul>
+
                         </div>
                     </div>
+                </div>
+                <div class="item-bg-color p-3 rounded mt-5">
+                    <div class="list-type">
+                        <p class="font-weight-bold mb-0">Nhà xuất bản </p>
+                        <ol class="parent-gerne list-unstyled mb-0 cursor-pointer">
+                        </ol>
+                        <div class="current-gerne cursor-pointer">
 
+                        </div>
+                        <div id="group-filter-publisher">
+                            <ul
 
+                                    class="text-decoration-none list-unstyled box-filter pl-2">
+
+                                {% for p in publishers %}
+                                <li class="d-flex align-items-center">
+                                    <label class="cursor-pointer">
+                                        <input type="checkbox"
+                                               value="{{ p.publisher_id }}"
+                                               {% if publisher_params and p.publisher_id in publisher_params %}checked{%
+                                               endif %}>
+                                        <span>{{ p.publisher_name }}</span>
+                                    </label>
+                                </li>
+                                {% endfor %}
+                            </ul>
+
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-9 rounded">
