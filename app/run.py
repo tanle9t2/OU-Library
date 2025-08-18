@@ -69,11 +69,6 @@ def load_user(user_id):
     return UserDao.get_user_by_id(user_id)
 
 
-@app.route("/monitor")
-def monitor():
-    return render_template("monitor.html")
-
-
 @app.route("/account/google/login")
 def abc_login():
     if not google.authorized:

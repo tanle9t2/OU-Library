@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 import math
 
 from app import db
@@ -49,7 +49,7 @@ def cancel_request(id, note):
     request.status = Status.CANCEL
     request.note = note
     db.session.commit()
-=======
+
 from app.model.Book import Book
 from app.model.Request import Request, Status
 from app import db
@@ -90,4 +90,4 @@ class RequestDAO:
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
->>>>>>> dev
+
