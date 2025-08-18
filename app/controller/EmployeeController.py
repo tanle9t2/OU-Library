@@ -8,6 +8,7 @@ from app.utils.helper import FORMAT_BOOK_TEXT
 from app.model.Book import Book
 from app.model.Publisher import Publisher
 from app.dao.PublisherDAO import find_all as find_all_publisher
+from app.model.ActivityLog import ActivityLog
 
 employee_bp = Blueprint('employee', __name__)
 
@@ -83,6 +84,16 @@ def delete_book(book_id):
 
     return jsonify({"success": True})
 
+@employee_bp.route("/activity_logs")
+@admin_required
+def get_activity_logs():
+    logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).all()
+    return jsonify([log.to_dict() for log in logs])
+
+@employee_bp.route("/monitor")
+@admin_required
+def monitor():
+    return render_template("/employee/employeeMonitor.html")
 
 @employee_bp.route("/profile")
 @admin_required

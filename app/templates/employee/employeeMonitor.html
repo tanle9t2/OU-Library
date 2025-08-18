@@ -1,0 +1,136 @@
+{% extends 'admin/layout/base.html' %}
+
+{% block title %} Giám Sát Hoạt Động {% endblock %}
+
+{% block css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/employeeMonitor.css') }}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+{% endblock %}
+
+{% block js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let actionChart;
+
+async function loadData() {
+  try {
+    const res = await fetch("{{ url_for('employee.get_activity_logs') }}");
+    const data = await res.json();
+
+    // Render table
+    const tbody = document.querySelector("#activityTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(log => {
+      const row = `<tr>
+        <td>${log.activity_log_id}</td>
+        <td>${log.user_id}</td>
+        <td>${log.book_id}</td>
+        <td><span class="badge
+            ${log.action === 'borrow' ? 'bg-success' :
+              log.action === 'return' ? 'bg-info' :
+              'bg-secondary'}">
+            ${log.action}
+        </span></td>
+        <td>${new Date(log.created_at).toLocaleString()}</td>
+      </tr>`;
+      tbody.innerHTML += row;
+    });
+
+    // Count actions
+    const counts = {};
+    data.forEach(log => {
+      counts[log.action] = (counts[log.action] || 0) + 1;
+    });
+
+    // Render Chart
+    const ctx = document.getElementById("actionChart").getContext("2d");
+    if (actionChart) actionChart.destroy();
+    actionChart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels: Object.keys(counts).length ? Object.keys(counts) : ["Không có dữ liệu"],
+        datasets: [{
+          data: Object.values(counts).length ? Object.values(counts) : [1],
+          backgroundColor: ["#3498db", "#2ecc71", "#e67e22", "#9b59b6", "#e74c3c"]
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+
+  } catch (err) {
+    console.error("Lỗi tải dữ liệu:", err);
+  }
+}
+
+// Load dữ liệu lần đầu
+window.addEventListener("load", loadData);
+
+// Tự động refresh mỗi 30 giây
+setInterval(loadData, 30000);
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="header bg-primary pb-6">
+  <div class="container-fluid">
+    <div class="header-body">
+      <div class="row align-items-center py-4">
+        <div class="col-lg-6 col-7">
+          <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
+            <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
+              <li class="breadcrumb-item"><a href="#"><i class="fas fa-home"></i></a></li>
+              <li class="breadcrumb-item text-dark" aria-current="page">Giám sát hoạt động</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid mt--6">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-header border-0">
+          <h3 class="mb-0">Giám sát hoạt động</h3>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- Bảng hoạt động -->
+            <div class="col-lg-8">
+              <div class="table-responsive">
+                <table id="activityTable" class="table align-items-center activity-table">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>ID</th>
+                      <th>Người dùng</th>
+                      <th>Sách</th>
+                      <th>Hành động</th>
+                      <th>Thời gian</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Biểu đồ -->
+            <div class="col-lg-4">
+              <div class="chart-container">
+                <canvas id="actionChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
