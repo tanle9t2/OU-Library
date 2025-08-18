@@ -2,9 +2,12 @@ import pdb
 import string
 import random
 import os
-from flask import redirect, url_for, session, render_template
+
+from firebase_admin import messaging
+from flask import redirect, url_for, session, render_template, request, jsonify
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
+
 from app.controller.EmployeeController import employee_bp
 from app.controller.rest.BookAPI import book_rest_bp
 from app.controller.rest.BookGerneAPI import book_gerne_rest_bp
@@ -18,6 +21,11 @@ from app.controller.HomeController import index_bp
 from app.dao import UserDao
 from app.model.User import UserRole, UserType
 
+
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
+app.register_blueprint(account_bp, url_prefix='/account')
+app.register_blueprint(index_bp, url_prefix='/')
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
@@ -117,12 +125,42 @@ def abc_login():
     else:
         return "Lỗi xác thực", 500
 
+
 @app.route("/logout")
 def logout():
     logout_user()
     session.pop("google_oauth_token", None)
     session.clear()
     return redirect(url_for('index.search_main'))
+
+
+def send_notification_to_user(user_id,title,body):
+    topic = f"user_{user_id}"
+    message = messaging.Message(
+        notification=messaging.Notification(title=title, body=body),
+        topic=topic
+    )
+    response = messaging.send(message)
+    return response
+
+
+@app.route("/subscribe_topic", methods=["POST"])
+def subscribe_topic():
+    data = request.json
+    user_id = data.get("userId")
+    token = data.get("token")
+
+    if not user_id or not token:
+        return jsonify({"error": "Missing userId or token"}), 400
+
+    topic = f"user_{user_id}"  # unique topic per user
+
+    try:
+        response = messaging.subscribe_to_topic([token], topic)
+        print("Subscribe response:", response)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
