@@ -90,3 +90,4 @@ class RequestDAO:
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
+
