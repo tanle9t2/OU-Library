@@ -49,7 +49,7 @@ def search_main():
 def get_detail():
     book_id = request.args.get('bookId', type=int)
     book = find_by_id(book_id)
-    books = search_book(gerne_id=book.book_gerne_id, limit=12)['books']
+    books = search_book(genres=[book.book_gerne_id], limit=12)['books']
     # sold_book = count_book_sell(book_id)
     sold_book = 1;
     detail_book = {

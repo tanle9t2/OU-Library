@@ -2,7 +2,9 @@ import json
 from datetime import datetime
 from xml.dom import NotFoundErr
 
+
 from flask import Blueprint, request, jsonify
+from flask_login import current_user
 
 from app import app
 from app.dao.BookDAO import find_by_id, create_book, count_book_sell, search_book
@@ -30,7 +32,7 @@ def create_books():
     title = request.form.get('title')
     book_gerne_id = request.form.get('book_gerne_id')
     author = request.form.get('author')
-    price = request.form.get('price')
+    quantity = request.form.get('quantity')
     num_page = request.form.get('num_page')
     description = request.form.get('description')
     format = request.form.get('format')
@@ -47,7 +49,7 @@ def create_books():
         "title": title,
         "book_gerne_id": int(book_gerne_id),
         "author": author,
-        "price": float(price),
+        "quantity": int(quantity),
         "num_page": int(num_page),
         "description": description,
         "format": int(format),
@@ -58,7 +60,7 @@ def create_books():
         "book_images": book_images,
         "barcode": barcode
     }
-    create_book(data)
+    create_book(current_user.user_id,data)
 
     return jsonify({
         'message': 'success',

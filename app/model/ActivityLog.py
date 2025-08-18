@@ -21,7 +21,9 @@ class ActivityLog(db.Model):
             "action": self.action,
             "created_at": self.created_at,
             "user_id": self.user_id,
-            "book_id": self.book_id
+            "full_name": self.user.full_name,
+            "book_id": self.book_id,
+            "book_title": self.book.title
         }
 
     def to_dto(self):
@@ -30,9 +32,10 @@ class ActivityLog(db.Model):
             "action": self.action,
             "created_at": self.created_at,
             "user_id": self.user_id,
-            "book_id": self.book_id
+            "full_name": self.user.full_name,
+            "book_id": self.book_id,
+            "book_title": self.book.title
         }
 
     def __str__(self):
         pass
-

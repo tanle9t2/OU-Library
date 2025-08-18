@@ -112,7 +112,7 @@ def logout_process():
     return redirect('/')
 
 
-@account_bp.route('/admin-login', methods=['GET', 'POST'])
+@account_bp.route('/employee-login', methods=['GET', 'POST'])
 def admin_login():
     err_msg = ''
     if request.method == 'POST':
@@ -123,7 +123,7 @@ def admin_login():
         if user:
             if user.user_role == UserRole.LIBRARIAN:
                 login_user(user=user)
-                return redirect('/admin/')
+                return redirect('/employee/monitor')
             else:
                 err_msg = "Vai trò không hợp lệ!"
         else:

@@ -1,6 +1,7 @@
 from sqlalchemy import desc, asc, or_
 from sqlalchemy.sql import text
 
+from app.dao.ActivityLogDAO import create_activity_log
 from app.exception.NotFoundException import NotFoundError
 from app.model.Book import Book, BookFormat
 from app.model.BookGerne import BookGerne
@@ -98,10 +99,10 @@ def search_book(keyword=None, order=None, genres=None, publishers=None, limit=No
     }
 
 
-def create_book(data):
+def create_book(user_id, data):
     book = Book(title=data['title'],
                 author=data['author'],
-                price=data['price'],
+                quantity=data['quantity'],
                 num_page=data['num_page'],
                 description=data['description'],
                 release_date=data['release_date'],
@@ -126,7 +127,7 @@ def create_book(data):
             res = cloudinary.uploader.upload(image)
             image_url = res['secure_url']
             book.image_url = image_url
-
-
     db.session.add(book)
     db.session.commit()
+
+    create_activity_log(user_id=user_id, book_id=book.book_id, action="CREATED")

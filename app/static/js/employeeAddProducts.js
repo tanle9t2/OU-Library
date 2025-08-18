@@ -385,7 +385,7 @@ function handleCreateBook(e) {
         const publisher = $('.dropdown-toggle-publisher').attr('id');
         const format = $('.dropdown-toggle-format').attr('id');
         const releaseDate = $('input[name="release-date"]').val();
-        const price = $('input[name="product-price"]').val();
+        const quantity = $('input[name="product-price"]').val();
         const weight = $('input[name="product-weight"]').val();
         const r = $('input[name="product-dimension-r"]').val();
         const d = $('input[name="product-dimension-d"]').val();
@@ -437,7 +437,7 @@ function handleCreateBook(e) {
             $('#error-num-pages').removeClass('text-primary');
         }
 
-        if (price === '') {
+        if (quantity === '') {
             flag = true;
             $('#error-price').addClass('text-primary');
         } else {
@@ -470,7 +470,7 @@ function handleCreateBook(e) {
             'title': title,
             'book_gerne_id': gerneId,
             'author': author,
-            'price': price,
+            'quantity': quantity,
             'num_page': num_page,
             'description': description,
             'format': format,

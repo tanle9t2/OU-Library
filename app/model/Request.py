@@ -17,7 +17,7 @@ class Request(db.Model):
     user_id = Column(Integer, ForeignKey('user.user_id'), nullable=False)
     status = Column(Enum(Status), default=Status.WAIT)
     book_id = Column(Integer, ForeignKey('book.book_id'), nullable=False)
-    created_at = Column(DATETIME, nullable=False, default=datetime.utcnow)
+    created_at = Column(DATETIME, nullable=False, default=datetime.now())
     note = Column(String)
 
     user = relationship('User', uselist=False)

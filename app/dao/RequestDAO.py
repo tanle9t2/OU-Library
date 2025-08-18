@@ -1,13 +1,26 @@
-
 import math
 
+from firebase_admin import messaging
+from sqlalchemy.exc import SQLAlchemyError
 from app import db
+from app.dao.ActivityLogDAO import create_activity_log
 from app.model.Request import Request, Status
 from sqlalchemy import extract, desc, asc
+from app.model.Book import Book
 
 
-def find_all_waiting_request(page=1, limit=5, order=None, date=None):
-    query = Request.query.filter(Request.status == Status.WAIT)
+def send_notification_to_user(user_id, title, body):
+    topic = f"user_{user_id}"
+    message = messaging.Message(
+        notification=messaging.Notification(title=title, body=body),
+        topic=topic
+    )
+    response = messaging.send(message)
+    return response
+
+
+def find_all_waiting_request(page=1, limit=5, order=None, date=None, status=Status.WAIT):
+    query = Request.query.filter(Request.status == status)
 
     if date:  # assuming date is a datetime.date or datetime.datetime object
         date_arr = date.split('-')
@@ -37,23 +50,26 @@ def find_all_waiting_request(page=1, limit=5, order=None, date=None):
     }
 
 
-def accept_request(id):
+def accept_request(user_id, id):
     request = Request.query.get(id)
     request.status = Status.ACCEPT
+    send_notification_to_user(user_id=request.user_id, title="Chấp nhận yêu cầu",
+                              body="Yêu cầu của bạn đã được chấp nhận")
 
+    create_activity_log(user_id=user_id, book_id=request.book.book_id, action="ACCEPT")
     db.session.commit()
 
 
-def cancel_request(id, note):
+def cancel_request(user_id, id, note):
     request = Request.query.get(id)
     request.status = Status.CANCEL
     request.note = note
+    send_notification_to_user(user_id=request.user_id, title="Hủy cầu",
+                              body=note)
+
+    create_activity_log(user_id=user_id, book_id=request.book.book_id, action="CANCEL")
     db.session.commit()
 
-from app.model.Book import Book
-from app.model.Request import Request, Status
-from app import db
-from sqlalchemy.exc import SQLAlchemyError
 
 class RequestDAO:
     @staticmethod
@@ -61,16 +77,12 @@ class RequestDAO:
         try:
             book = Book.query.filter_by(book_id=book_id).first()
 
-            existing_request = Request.query.filter_by(user_id=user_id, book_id=book_id).first()
+            existing_request = Request.query.filter_by(user_id=user_id, book_id=book_id, status=Status.WAIT).first()
             if existing_request:
                 return {"error": "Bạn đã gửi yêu cầu mượn sách này trước đó."}, 409
 
             if book.borrowing >= book.quantity:
                 return {"error": "Book is not available for borrowing"}, 400
-
-            existing_request = Request.query.filter_by(user_id=user_id, book_id=book_id).first()
-            if existing_request:
-                return {"error": "You already requested this book"}, 409
 
             request = Request(
                 user_id=user_id,
@@ -90,4 +102,3 @@ class RequestDAO:
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
-

@@ -23,10 +23,6 @@ from app.model.User import UserRole, UserType
 
 
 app.config['PREFERRED_URL_SCHEME'] = 'https'
-
-app.register_blueprint(account_bp, url_prefix='/account')
-app.register_blueprint(index_bp, url_prefix='/')
-
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '0'
 
 google_bp = make_google_blueprint(
@@ -129,14 +125,6 @@ def logout():
     return redirect(url_for('index.search_main'))
 
 
-def send_notification_to_user(user_id,title,body):
-    topic = f"user_{user_id}"
-    message = messaging.Message(
-        notification=messaging.Notification(title=title, body=body),
-        topic=topic
-    )
-    response = messaging.send(message)
-    return response
 
 
 @app.route("/subscribe_topic", methods=["POST"])
