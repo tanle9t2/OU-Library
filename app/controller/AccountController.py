@@ -46,10 +46,6 @@ def login_process():
     return render_template("login.html", err_msg=err_msg)
 
 
-@account_bp.route("/verify", methods=['GET', 'POST'])
-def verify_email():
-    return redirect(url_for('account.register_process'))
-
 @account_bp.route("/register", methods=['get', 'post'])
 def register_process():
     err_msg = ''
@@ -114,7 +110,6 @@ def register_process():
 def logout_process():
     logout_user()
     return redirect('/')
-
 
 
 @account_bp.route('/admin-login', methods=['GET', 'POST'])

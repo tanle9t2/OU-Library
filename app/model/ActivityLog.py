@@ -35,3 +35,4 @@ class ActivityLog(db.Model):
 
     def __str__(self):
         pass
+
