@@ -1,9 +1,9 @@
-const bookGerne_API = '/api/v1/bookGerne'
+const BOOK_GERNE_API = '/api/v1/bookGerne'
 const BOOK_API = '/api/v1/book/'
 
 async function fetchGerne() {
     try {
-        const res = await fetch(`${bookGerne_API}`)
+        const res = await fetch(`${BOOK_GERNE_API}`)
         if (!res.ok) throw Error("Failed getting book gerne")
         const data = await res.json()
         return data['data']
@@ -12,19 +12,70 @@ async function fetchGerne() {
     }
 }
 
-function showSpinner() {
-    document.querySelector('.spinner').style.display = 'block';
+// New function to fetch all genres for initial load
+async function fetchAllGenres() {
+    try {
+        // If you have a separate endpoint for all genres
+        const res = await fetch(`${BOOK_GERNE_API}/all`)
+        if (!res.ok) {
+            // Fallback to the existing endpoint if /all doesn't exist
+            const fallbackRes = await fetch(`${BOOK_GERNE_API}`)
+            if (!fallbackRes.ok) throw Error("Failed getting all genres")
+            const fallbackData = await fallbackRes.json()
+            return fallbackData['data'] || fallbackData
+        }
+        const data = await res.json()
+        return data['data'] || data
+    } catch (error) {
+        alert(error.message)
+        return []
+    }
+}
 
+// Function to populate the initial genre menu
+async function loadInitialGenres() {
+    try {
+        const genres = await fetchAllGenres()
+        const $col1 = $('#col1')
+
+        // Clear existing content
+        $col1.empty()
+
+        // Handle both array and object responses
+        const genreList = Array.isArray(genres) ? genres : (genres.genres || [])
+
+        // Add each genre as a menu item
+        genreList.forEach(genre => {
+            const $menuItem = $('<div>')
+                .addClass('menu-item')
+                .attr('data-id', genre.book_gerne_id)
+                .text(genre.name)  // Add this line to display the genre name
+                .on('click', function() {
+                    chooseCategory(genre.book_gerne_id, this)
+                })
+
+            $col1.append($menuItem)
+        })
+
+    } catch (error) {
+        console.error('Error loading initial genres:', error)
+        showToast('Failed to load genres', true)
+    }
+}
+
+
+function showSpinner() {
+    $('.spinner').show();
 }
 
 // HIDE SPINNER
 function hideSpinner() {
-    document.querySelector('.spinner').style.display = 'none';
+    $('.spinner').hide();
 }
 
 async function fetchExtendAttribute(id) {
     try {
-        const res = await fetch(`${bookGerne_API}/${id}/attributes`)
+        const res = await fetch(`${BOOK_GERNE_API}/${id}/attributes`)
         if (!res.ok) throw Error("Failed getting book gerne")
         const data = await res.json()
         return data['data']
@@ -34,18 +85,16 @@ async function fetchExtendAttribute(id) {
 }
 
 const createBook = async function (data) {
-
     try {
         showSpinner()
         const res = await fetch(`${BOOK_API}`, {
-            method: 'POST', // HTTP PUT method
+            method: 'POST',
             body: data
         });
         if (!res.ok) {
             throw new Error(`HTTP error! status: ${res.status}`);
         }
-        const result = await res.json(); // Parse JSON response
-
+        const result = await res.json();
         return result
     } catch (error) {
         showToast(error.message, true)
@@ -53,6 +102,7 @@ const createBook = async function (data) {
         hideSpinner()
     }
 }
+
 const showToast = function (message, isError) {
     const color = isError ? 'var(--red)' : "#6cbf6c"
     Toastify({
@@ -60,525 +110,362 @@ const showToast = function (message, isError) {
         duration: 3000,
         newWindow: true,
         close: true,
-        gravity: "top", // `top` or `bottom`
-        position: "center", // `left`, `center` or `right`
-        stopOnFocus: true, // Prevents dismissing of toast on hover
+        gravity: "top",
+        position: "center",
+        stopOnFocus: true,
         style: {
             background: color,
         }
     }).showToast()
 }
 
-
 let selectedPath = "";
-let activeColumn1 = null; // Track active item in column 1
-let activeColumn2 = null; // Track active item in column 2
-let activeColumn3 = null; // Track active item in column 3
+let activeColumn1 = null;
+let activeColumn2 = null;
+let activeColumn3 = null;
 
 let genres = [];
-const genreList = document.getElementById("genreList");
-const genreSearch = document.getElementById("genreSearch");
-const newGenreContainer = document.getElementById("newGenreContainer");
-const newGenreInput = document.getElementById("newGenre");
 let fileImage = []
-const publisherItem = document.querySelectorAll('.dropdown-publisher > .dropdown-item')
-const formatItem = document.querySelectorAll('.dropdown-format > .dropdown-item')
-const dropdownPublisher = document.querySelector('.dropdown-toggle-publisher')
-const dropdownFormat = document.querySelector('.dropdown-toggle-format')
-document.getElementById('release-date').addEventListener('input', function (e) {
-    const input = e.target;
-    const value = input.value;
 
-    // Remove all non-numeric characters except '/'
-    const sanitizedValue = value.replace(/[^0-9/]/g, '');
+$(document).ready(function() {
+    const $genreList = $("#genreList");
+    const $genreSearch = $("#genreSearch");
+    const $newGenreContainer = $("#newGenreContainer");
+    const $newGenreInput = $("#newGenre");
+    loadInitialGenres();
+    // Publisher dropdown handler
+    $('.dropdown-publisher .dropdown-item').on('click', function() {
+        const $dropdownPublisher = $('.dropdown-toggle-publisher');
+        $dropdownPublisher.attr('id', $(this).attr('value'));
+        $dropdownPublisher.html(`<span class="ml-2">${$(this).text()}</span>`);
+    });
 
-    // Automatically insert slashes for formatting
-    if (sanitizedValue.length === 2 || sanitizedValue.length === 5) {
-        input.value = sanitizedValue + '/';
-    } else {
-        input.value = sanitizedValue;
-    }
-    // Limit length to 10 characters (dd/mm/yyyy)
-    if (sanitizedValue.length > 10) {
-        input.value = sanitizedValue.slice(0, 10);
-    }
-});
+    // Format dropdown handler
+    $('.dropdown-format .dropdown-item').on('click', function() {
+        const $dropdownFormat = $('.dropdown-toggle-format');
+        $dropdownFormat.attr('id', $(this).attr('value'));
+        $dropdownFormat.html(`<span class="ml-2">${$(this).text()}</span>`);
+    });
 
-document.getElementById('release-date').addEventListener('blur', function (e) {
-    const input = e.target;
-    const value = input.value;
+    // Release date input formatting
+    $('#release-date').on('input', function(e) {
+        const $input = $(this);
+        const value = $input.val();
 
-    // Regular expression for dd/mm/yyyy format
-    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+        // Remove all non-numeric characters except '/'
+        const sanitizedValue = value.replace(/[^0-9/]/g, '');
 
-    if (!dateRegex.test(value)) {
-        document.getElementById('errorMessage').style.display = 'block';
-    } else {
-        document.getElementById('errorMessage').innerText = ''
-
-        // Optional: Additional validation for actual date
-        const [_, day, month, year] = value.match(dateRegex);
-
-        const date = new Date(`${year}-${month}-${day}`);
-        if (
-            date.getFullYear() !== parseInt(year) ||
-            date.getMonth() + 1 !== parseInt(month) || // Month is zero-indexed in JavaScript
-            date.getDate() !== parseInt(day)
-        ) {
-            document.getElementById('errorMessage').innerText = 'Invalid date!';
+        // Automatically insert slashes for formatting
+        if (sanitizedValue.length === 2 || sanitizedValue.length === 5) {
+            $input.val(sanitizedValue + '/');
+        } else {
+            $input.val(sanitizedValue);
         }
-    }
+        // Limit length to 10 characters (dd/mm/yyyy)
+        if (sanitizedValue.length > 10) {
+            $input.val(sanitizedValue.slice(0, 10));
+        }
+    });
+
+    // Release date validation on blur
+    $('#release-date').on('blur', function(e) {
+        const $input = $(this);
+        const value = $input.val();
+
+        // Regular expression for dd/mm/yyyy format
+        const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+        if (!dateRegex.test(value)) {
+            $('#errorMessage').show();
+        } else {
+            $('#errorMessage').text('');
+
+            // Optional: Additional validation for actual date
+            const [_, day, month, year] = value.match(dateRegex);
+
+            const date = new Date(`${year}-${month}-${day}`);
+            if (
+                date.getFullYear() !== parseInt(year) ||
+                date.getMonth() + 1 !== parseInt(month) ||
+                date.getDate() !== parseInt(day)
+            ) {
+                $('#errorMessage').text('Invalid date!');
+            }
+        }
+    });
+
+    // Prevent default button actions
+    $('button').on('click', function(event) {
+        event.preventDefault();
+    });
+
+    // Modal overlay click handler
+    $("#modalOverlay").on("click", function(event) {
+        if (event.target === this) {
+            closeModal();
+        }
+    });
+
+    // Genre search focus handler
+    $genreSearch.on("focus", function() {
+        populateGenreList();
+        $genreList.show();
+    });
+
+    // Genre search input handler
+    $genreSearch.on("input", function() {
+        populateGenreList($genreSearch.val());
+    });
+
+    // Hide dropdown when clicking outside
+    $(document).on("click", function(event) {
+        if (!$(event.target).closest(".dropdown-container").length) {
+            $genreList.hide();
+        }
+    });
+
+    // File upload handler
+    $('#book-image').on('change', function () {
+        const $container = $('.image-list');
+        const $uploadBox = $('.upload-box-image');
+        const files = Array.from(this.files);
+
+        // Clear previous images
+        $container.empty();
+        fileImage = [];
+
+        const file = files[0]; // Only one image allowed
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const html = `
+                    <div id='image-0' class="image-item position-relative">
+                        <img class="w-100 h-100" src="${e.target.result}">
+                        <button onclick="handleRemoveImage(event, 'image-0')" class="btn text-primary btn-delete-image">
+                            <i class="fa-solid fa-x"></i>
+                        </button>
+                    </div>
+                `;
+                $container.append(html);
+                $uploadBox.hide(); // Hide upload button
+            };
+            reader.readAsDataURL(file);
+            fileImage.push(file);
+        } else {
+            alert(`${file.name} is not a valid image file.`);
+        }
+
+        // Allow re-selecting same file
+        $(this).val('');
+    });
+
+
+
+    // Form submission handler
+    $('.btn-create-book').on('click', function(e) {
+        handleCreateBook(e);
+    });
 });
-publisherItem.forEach(el => el.addEventListener('click', () => {
-    dropdownPublisher.id = el.getAttribute('value')
-    dropdownPublisher.innerHTML = ` <span class="ml-2">${el.textContent}</span>`
-}))
-formatItem.forEach(el => el.addEventListener('click', () => {
-    dropdownFormat.id = el.getAttribute('value')
-    dropdownFormat.innerHTML = ` <span class="ml-2">${el.textContent}</span>`
-}))
 
 function openModal() {
-    document.getElementById("modalOverlay").classList.add("active");
+    $("#modalOverlay").addClass("active");
 }
 
 function closeModal() {
-    document.getElementById("modalOverlay").classList.remove("active");
-    const col2 = document.getElementById("col2");
-    const col3 = document.getElementById("col3");
-    selectedPath = ''
+    $("#modalOverlay").removeClass("active");
+    selectedPath = '';
     if (activeColumn1) {
-        activeColumn1.classList.remove("active");
-        activeColumn1 = null
-
-    }
-    if (activeColumn2) {
-        activeColumn2.classList.remove("active");
-        activeColumn2 = null
-
-    }
-    if (activeColumn3) {
-        activeColumn3.classList.remove("active");
-        activeColumn3 = null
-    }
-    col2.classList.add("hidden");
-    col3.classList.add("hidden");
-    updateSelectedDisplay()
-}
-
-// Ngăn chặn sự kiện click trên nút "Open" hoặc các nút khác
-document.querySelectorAll('button').forEach(button => {
-    button.addEventListener('click', (event) => {
-        event.preventDefault(); // Ngăn hành vi mặc định, ví dụ: reload trang
-    });
-});
-
-// Đảm bảo modal không tự tắt khi click bên trong nó
-document.getElementById("modalOverlay").addEventListener("click", (event) => {
-    if (event.target === document.getElementById("modalOverlay")) {
-        closeModal(); // Chỉ đóng khi click bên ngoài modal
-    }
-});
-
-async function toggleSubMenu(id, element) {
-    const col2 = document.getElementById("col2");
-    const col3 = document.getElementById("col3");
-
-    // Reset column 3
-    col3.innerHTML = '<p style="color: #aaa;">Chọn mục từ cột 2</p>';
-    col3.classList.add("hidden");
-    const subMenu = await fetchGerne()
-
-    // Check if clicking on the same active item
-    if (activeColumn1 === element) {
-        col2.classList.add("hidden");
-        activeColumn1.classList.remove("active");
+        $(activeColumn1).removeClass("active");
         activeColumn1 = null;
-        return;
     }
-
-    // Highlight active item
-    if (activeColumn1) activeColumn1.classList.remove("active");
-    element.classList.add("active");
-    activeColumn1 = element;
-
-    // Load submenu for Column 2
-    col2.innerHTML = "";
-    col2.classList.remove("hidden");
-
-    const currenGerne = subMenu['current_gerne'][0]['name'];
-    subMenu['sub_gerne'].forEach(value => {
-        const item = document.createElement("div");
-        item.className = "menu-item";
-        item.id = value['id']
-        item.textContent = value['name'];
-        item.onclick = () => toggleFinalMenu(value['id'], currenGerne, value['name'], item);
-        col2.appendChild(item);
-    })
-    selectedPath = currenGerne;
     updateSelectedDisplay();
-}
-
-async function toggleFinalMenu(id, prev, subCategory, element) {
-    const col3 = document.getElementById("col3");
-    const category = await fetchGerne(id)
-    // Check if clicking on the same active item
-    if (activeColumn2 === element) {
-        col3.classList.add("hidden");
-        activeColumn2.classList.remove("active");
-        selectedPath = selectedPath.split(' > ').slice(0, 1).join(" > ")
-        updateSelectedDisplay();
-        activeColumn2 = null;
-        activeColumn3 = null
-        return
-
-    }
-    // Highlight active item
-    if (activeColumn2) activeColumn2.classList.remove("active");
-    element.classList.add("active");
-    activeColumn2 = element;
-
-    // Load submenu for Column 3
-    col3.innerHTML = "";
-    col3.classList.remove("hidden");
-
-
-    const finalMenu = category['sub_gerne']
-
-    finalMenu.forEach(item => {
-        const menuItem = document.createElement("div");
-        menuItem.className = "menu-item";
-        menuItem.textContent = item['name'];
-        menuItem.id = item['id']
-        menuItem.onclick = () => {
-            selectFinalItem(prev, subCategory, item['name'], menuItem)
-        };
-        col3.appendChild(menuItem);
-    });
-
-    selectedPath = `${prev} > ${subCategory}`;
-    updateSelectedDisplay();
-}
-
-function selectFinalItem(category, subCategory, item, menuItem) {
-    if (activeColumn3 === menuItem) {
-        activeColumn3.classList.remove("active")
-        selectedPath = selectedPath.split(' > ').slice(0, 2).join(" > ")
-        updateSelectedDisplay()
-        activeColumn3 = null
-        return;
-    }
-    if (activeColumn3)
-        activeColumn3.classList.remove("active")
-
-    menuItem.classList.add("active");
-    activeColumn3 = menuItem;
-    selectedPath = `${category} > ${subCategory} > ${item}`;
-    updateSelectedDisplay();
-
-
 }
 
 function updateSelectedDisplay() {
-    document.getElementById("selectedPath").textContent = selectedPath;
+    $("#selectedPath").text(selectedPath);
+}
+
+async function chooseCategory(id, element) {
+    $('.menu-item').removeClass('active')
+    $('.menu-item').attr("id", id);
+
+    $(element).addClass('active')
+
+    console.log('Selected genre ID:', id)
 }
 
 async function confirmSelection() {
-    const col2 = document.getElementById("col2");
-    const col3 = document.getElementById("col3");
-
     try {
-        let gerneId
-        if (col3.querySelector('.menu-item.active'))
-            gerneId = col3.querySelector('.menu-item.active').id
-        else if (col2.querySelector('.menu-item.active'))
-            gerneId = col2.querySelector('.menu-item.active').id
-
-        else
-            throw new Error("Vui lòng chọn thể loại cụ thể")
-        document.querySelector('input[name="input-gerne"]').value = selectedPath
-        document.querySelector('input[name="input-gerne"]').id = gerneId
-        genres = await fetchExtendAttribute(gerneId)
-        if (genres.length) {
-            document.querySelector('input[name ="dropdown-search"]').disabled = false
+        let gerneId;
+        const $menuItem = $("#col1 .menu-item.active")
+        if ($menuItem.length) {
+            gerneId = $menuItem.attr('id');
+        } else {
+            throw new Error("Vui lòng chọn thể loại cụ thể");
         }
+
+        $('input[name="input-gerne"]').attr('data-id', gerneId);
+        $('input[name="input-gerne"]').val($menuItem.text());
     } catch (error) {
-        showToast(error.message, true)
+        showToast(error.message, true);
     }
     closeModal();
 }
 
 function filterMenuItems() {
-    const searchInput = document.getElementById("searchInput").value.toLowerCase();
-    const allMenuItems = document.querySelectorAll(".menu-item");
-    allMenuItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(searchInput) ? "block" : "none";
+    const searchInput = $("#searchInput").val().toLowerCase();
+    $(".menu-item").each(function() {
+        const text = $(this).text().toLowerCase();
+        $(this).toggle(text.includes(searchInput));
     });
 }
 
-// Genre list
-function handlerRemoveAttribute(event, id, name, el) {
-    event.preventDefault()
-    // {
-    //      'attribute_id':id,
-    //      'attribute_name':name
-    // }
-    const newGerene = {
-        'attribute_id': id,
-        'attribute_name': name
-    }
-    genres = [...genres, newGerene]
-    genreList.querySelectorAll('.dropdown-item').forEach(el => {
-        if (parseInt(el.id) === id)
-            el.style = 'display:flex'
-    })
-
-    if (genres) {
-        document.querySelector('input[name ="dropdown-search"]').disabled = false
-        if (document.querySelector('.error-message')) {
-            document.querySelector('.error-message').remove()
-        }
-    }
-    el.remove()
-}
-
-function addExtendAttribute(id, name) {
-    const groupExtendAttriubte = document.querySelector('.group-extend-atrtribute')
-    const html = `
-                 <div class="form-group">
-                    <label class="attribute-name">${name}</label>
-                    <div class="dropdown-container attribute-value">
-                        <input type="text" id="${id}"
-                               class="m-0 dropdown-search product-publisher" autocomplete="off">
-                    </div>
-                     <button class="btn ml-1 p-0 btn-delete">
-                        <i class="fa-solid fa-x"></i>
-                    </button>
-                </div>
-            `
-    groupExtendAttriubte.insertAdjacentHTML('beforeend', html)
-    const formGroup = groupExtendAttriubte.querySelectorAll('.form-group')
-    formGroup[formGroup.length - 1].querySelector('.btn-delete').addEventListener('click',
-        e => handlerRemoveAttribute(e, id, name, formGroup[formGroup.length - 1]))
-
-
-    genreList.style.display = "none";
-    genres = genres.filter(gerne => gerne.attribute_id !== id)
-
-    genreList.querySelectorAll('.dropdown-item').forEach(el => {
-        if (parseInt(el.id) === id)
-            el.style = 'display:none'
-    })
-    if (!genres.length) {
-        document.querySelector('input[name ="dropdown-search"]').disabled = true
-        document.querySelector('input[name ="dropdown-search"]').insertAdjacentHTML('afterend', `
-             <span class="error-message text-primary">Không còn thuộc tính để thêm</span>
-        `)
-    }
-}
-
-// Populate genre dropdown list
 async function populateGenreList(filter = "") {
+    const $genreList = $("#genreList");
+    $genreList.empty();
 
-    genreList.innerHTML = ""; // Clear the list
-    const filteredGenres = genres.filter(genre => genre['attribute_name'].toLowerCase().includes(filter.toLowerCase()));
+    const filteredGenres = genres.filter(genre =>
+        genre['attribute_name'].toLowerCase().includes(filter.toLowerCase())
+    );
+
     filteredGenres.forEach(genre => {
-        const item = document.createElement("div");
-        item.classList.add("dropdown-item");
-        item.id = genre['attribute_id']
-        item.textContent = genre['attribute_name'];
-        item.addEventListener("click", () => {
-            addExtendAttribute(genre['attribute_id'], genre['attribute_name'])
-        });
-        genreList.appendChild(item);
+        const $item = $('<div>')
+            .addClass("dropdown-item")
+            .attr('id', genre['attribute_id'])
+            .text(genre['attribute_name'])
+            .on('click', function() {
+                addExtendAttribute(genre['attribute_id'], genre['attribute_name']);
+            });
+        $genreList.append($item);
     });
-    genreList.style.display = "block";
+    $genreList.show();
 }
 
-// Show dropdown list on click
-genreSearch.addEventListener("focus", () => {
-    populateGenreList(); // Show full list when focused
-    genreList.style.display = "block"; // Show the dropdown list
-});
-
-// Event listener for searching within the genre list
-genreSearch.addEventListener("input", () => {
-    populateGenreList(genreSearch.value); // Filter list as user types
-});
-
-// Hide dropdown when clicking outside
-document.addEventListener("click", (event) => {
-    if (!event.target.closest(".dropdown-container")) {
-        genreList.style.display = "none";
-    }
-});
-
-function handleRemoveImage(e, name) {
-    e.preventDefault()
-    const container = document.querySelector('.image-list')
-    fileImage.splice(parseInt(name.split('-')), 1)
-    container.querySelector(`#${name}`).remove()
+// function handleRemoveImage(e, name) {
+//     e.preventDefault();
+//     const $container = $('.image-list');
+//     fileImage.splice(parseInt(name.split('-')[1]), 1);
+//     $container.find(`#${name}`).remove();
+// }
+// Image remove handler
+function handleRemoveImage(event, imageId) {
+    event.preventDefault();
+    $('#' + imageId).remove();
+    fileImage = [];
+    $('.upload-box-image').show(); // Show upload again
 }
-
-const uploadImage = document.getElementById('book-image')
-uploadImage.addEventListener('change', () => {
-    const container = document.querySelector('.image-list')
-    const files = Array.from(uploadImage.files) // Get file names
-
-
-    files.forEach((file, index) => {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader(); // Create a FileReader
-            reader.onload = e => {
-                const html = `
-                      <div id='image-${index + fileImage.length}' class="image-item position-relative">
-                        <img class="w-100 h-100"
-                             src="${e.target.result}">
-                        <button onclick="handleRemoveImage(event,'image-${index + fileImage.length}')" class="btn text-primary btn-delete-image">
-                            <i class="fa-solid fa-x"></i>
-                        </button>
-                      </div>
-                `
-                container.insertAdjacentHTML('beforeend', html); // Add the image to the preview container
-            };
-
-            reader.readAsDataURL(file); // Read the file as a data URL
-        } else {
-            const msg = document.createElement('p');
-            msg.textContent = `${file.name} is not an image file.`;
-        }
-    });
-    fileImage.push(...files)
-})
 
 function clearValue() {
-    document.querySelector('input[name="title"]').value = '';
-    document.querySelector('input[name="input-gerne"]').id = '';
-    document.getElementById("product-description").value = '';
-    document.querySelector('input[name="product-author"]').value = '';
-    document.querySelector('input[name="product-num-page"]').value = '';
-    document.querySelector('.dropdown-toggle-publisher').id = '';
-    document.querySelector('.dropdown-toggle-format').id = '';
-    document.querySelector('.dropdown-toggle-publisher').textContent = '';
-    document.querySelector('.dropdown-toggle-format').textContent = '';
-    document.querySelector('input[name="release-date"]').value = '';
-    document.querySelector('input[name="product-price"]').value = '';
-    document.querySelector('input[name="product-weight"]').value = '';
-    document.querySelector('input[name="product-dimension-r"]').value = '';
-    document.querySelector('input[name="product-dimension-d"]').value = '';
-    document.querySelector('input[name="product-dimension-c"]').value = '';
-    document.querySelector('.group-extend-atrtribute').innerHTML = ''
-    fileImage = []
+    $('input[name="title"]').val('');
+    $('input[name="input-gerne"]').attr('id', '');
+    $("#product-description").val('');
+    $('input[name="product-author"]').val('');
+    $('input[name="product-num-page"]').val('');
+    $('.dropdown-toggle-publisher').attr('id', '').text('');
+    $('.dropdown-toggle-format').attr('id', '').text('');
+    $('input[name="release-date"]').val('');
+    $('input[name="product-price"]').val('');
+    $('input[name="product-weight"]').val('');
+    $('input[name="product-dimension-r"]').val('');
+    $('input[name="product-dimension-d"]').val('');
+    $('input[name="product-dimension-c"]').val('');
+    $('.group-extend-atrtribute').empty();
+    $('.image-list').empty();
+    fileImage = [];
 }
 
-//Form submission handler
 function handleCreateBook(e) {
-
     try {
-        const title = document.querySelector('input[name ="title"]').value.trim()
-        const gerneId = document.querySelector('input[name="input-gerne"]').id
-        const description = document.getElementById("product-description").value?.trim()
-        const author = document.querySelector('input[name ="product-author"]').value?.trim()
-        const num_page = document.querySelector('input[name="product-num-page"]').value
-        const publisher = document.querySelector('.dropdown-toggle-publisher').id
-        const format = document.querySelector('.dropdown-toggle-format').id
-        const releaseDate = document.querySelector('input[name="release-date"]').value
-        const price = document.querySelector('input[name="product-price"]').value
-        const weight = document.querySelector('input[name="product-weight"]').value
-        const r = document.querySelector('input[name="product-dimension-r"]').value
-        const d = document.querySelector('input[name="product-dimension-d"]').value
-        const c = document.querySelector('input[name="product-dimension-c"]').value
-        const barcode = document.querySelector('input[name="product-barcode"]').value
-        const extendAttriubte = document.querySelector('.group-extend-atrtribute').children
-        let extendAttributes = []
-        if (extendAttriubte.length > 1) {
-            for (let i = 1; i < extendAttriubte.length; i++) {
-                if (extendAttriubte[i].querySelector('input').value.trim() === '')
-                    throw new Error(`Vui lòng nhập thông tin cho ${extendAttriubte[i].querySelector('.attribute-name').textContent}`)
+        const title = $('input[name="title"]').val().trim();
+        const gerneId = $('input[name="input-gerne"]').attr('data-id');
+        const description = $("#product-description").val()?.trim();
+        const author = $('input[name="product-author"]').val()?.trim();
+        const num_page = $('input[name="product-num-page"]').val();
+        const publisher = $('.dropdown-toggle-publisher').attr('id');
+        const format = $('.dropdown-toggle-format').attr('id');
+        const releaseDate = $('input[name="release-date"]').val();
+        const price = $('input[name="product-price"]').val();
+        const weight = $('input[name="product-weight"]').val();
+        const r = $('input[name="product-dimension-r"]').val();
+        const d = $('input[name="product-dimension-d"]').val();
+        const c = $('input[name="product-dimension-c"]').val();
+        const barcode = $('input[name="product-barcode"]').val();
 
-                extendAttributes.push({
-                    'attribute_id': parseInt(extendAttriubte[i].querySelector('input').id),
-                    'value': extendAttriubte[i].querySelector('input').value.trim()
-                })
-            }
+        let flag = false;
 
-        }
-        let flag = false
+        // Validation with jQuery
         if (!fileImage.length) {
-            flag = true
-            document.getElementById('error-image').classList.add('text-primary')
+            flag = true;
+            $('#error-image').addClass('text-primary');
         } else {
-            document.getElementById('error-image').classList.remove('text-primary')
+            $('#error-image').removeClass('text-primary');
         }
+
         if (title === '') {
-            flag = true
-            document.getElementById('error-title').classList.add('text-primary')
+            flag = true;
+            $('#error-title').addClass('text-primary');
         } else {
-            document.getElementById('error-title').classList.remove('text-primary')
+            $('#error-title').removeClass('text-primary');
         }
+        console.log("gerne Id", gerneId)
         if (!gerneId) {
-            flag = true
-            document.getElementById('error-gerne').classList.add('text-primary')
+            flag = true;
+            $('#error-gerne').addClass('text-primary');
         } else {
-            document.getElementById('error-gerne').classList.remove('text-primary')
+            $('#error-gerne').removeClass('text-primary');
         }
+
         if (description === '') {
-            flag = true
-            document.getElementById('error-description').classList.add('text-primary')
+            flag = true;
+            $('#error-description').addClass('text-primary');
         } else {
-            document.getElementById('error-dimessions').classList.remove('text-primary')
+            $('#error-description').removeClass('text-primary');
         }
+
         if (author === '') {
-            flag = true
-            document.getElementById('error-author').classList.add('text-primary')
+            flag = true;
+            $('#error-author').addClass('text-primary');
         } else {
-            document.getElementById('error-author').classList.remove('text-primary')
+            $('#error-author').removeClass('text-primary');
         }
+
         if (num_page === '') {
-            flag = true
-            document.getElementById('error-num-pages').classList.add('text-primary')
+            flag = true;
+            $('#error-num-pages').addClass('text-primary');
         } else {
-            document.getElementById('error-num-pages').classList.remove('text-primary')
+            $('#error-num-pages').removeClass('text-primary');
         }
+
         if (price === '') {
-            flag = true
-            document.getElementById('error-price').classList.add('text-primary')
+            flag = true;
+            $('#error-price').addClass('text-primary');
         } else {
-            document.getElementById('error-price').classList.remove('text-primary')
+            $('#error-price').removeClass('text-primary');
         }
+
         if (weight === '') {
-            flag = true
-            document.getElementById('error-weight').classList.add('text-primary')
+            flag = true;
+            $('#error-weight').addClass('text-primary');
         } else {
-            document.getElementById('error-weight').classList.remove('text-primary')
+            $('#error-weight').removeClass('text-primary');
         }
+
         if (r === '' || d === '' || c === '') {
-            flag = true
-            document.getElementById('error-dimessions').classList.add('text-primary')
+            flag = true;
+            $('#error-dimessions').addClass('text-primary');
         } else {
-            document.getElementById('error-dimessions').classList.remove('text-primary')
+            $('#error-dimessions').removeClass('text-primary');
         }
+
         if (barcode === '' || isNaN(barcode) || barcode.length !== 12) {
             throw new Error("Sai định dạng barcode UPC 8");
-            document.getElementById('error-barcode').classList.add('text-primary')
         } else {
-            let barcodeDigits = barcode.split('').slice(0, 11);
-
-            const sumOdd = barcodeDigits.reduce((acc, cur, idx) => idx % 2 === 0 ? acc + +cur : acc, 0);
-            const sumEven = barcodeDigits.reduce((acc, cur, idx) => idx % 2 !== 0 ? acc + +cur : acc, 0);
-            const totalSum = sumOdd * 3 + sumEven;
-            const checkDigit = (10 - (totalSum % 10)) % 10
-
-            barcodeDigits.push(checkDigit)
-            const checkedBarcode = barcodeDigits.join('');
-
-            if (checkedBarcode !== barcode) {
-                throw new Error("Sai định dạng barcode UPC 8");
-            }
-            document.getElementById('error-barcode').classList.remove('text-primary')
+            $('#error-barcode').removeClass('text-primary');
         }
-        if (flag) throw Error("Vui lòng nhập các trường cần thiết")
+
+        if (flag) throw Error("Vui lòng nhập các trường cần thiết");
+
         const data = {
             'title': title,
             'book_gerne_id': gerneId,
@@ -592,59 +479,34 @@ function handleCreateBook(e) {
             'release_date': releaseDate,
             'dimension': r + 'x' + d + 'x' + c + ' cm',
             'book_images': fileImage,
-            'extend_attributes': extendAttributes,
             'barcode': barcode
-        }
-        const formData = new FormData()
+        };
+
+        const formData = new FormData();
         for (const key in data) {
             if (data.hasOwnProperty(key)) {
-                // Handle 'book_images' if it's a list of files
                 if (key === 'book_images' && Array.isArray(data[key])) {
                     data[key].forEach(file => {
-                        formData.append('book_images[]', file); // Append each file as part of the 'book_images[]' array
+                        formData.append('book_images[]', file);
                     });
-                } else if (key === 'extend_attributes' && typeof data[key] === 'object') {
-                    // If extend_attributes is an object, convert it to JSON
-                    formData.append('extend_attributes', JSON.stringify(data[key]));
                 } else {
-                    // For all other fields, append as a string or number
                     formData.append(key, data[key]);
                 }
             }
         }
-        e.preventDefault()
+
+        e.preventDefault();
         createBook(formData).then(res => {
             if (res['status'] === 200) {
-                showToast("Tạo sách thành công ", false)
-                clearValue()
-                window.scrollTo({
-                    top: 0,        // Scroll to the top
-                    behavior: 'smooth' // Smooth scrolling
-                });
+                showToast("Tạo sách thành công ", false);
+                clearValue();
+                $('html, body').animate({ scrollTop: 0 }, 'smooth');
             }
         }).then(() => {
             window.location.reload();
-        })
+        });
 
     } catch (error) {
-        showToast(error.message, true)
+        showToast(error.message, true);
     }
 }
-
-const buttonSubmit = document.querySelector('.btn-create-book')
-buttonSubmit.addEventListener('click', (e) => handleCreateBook(e))
-
-// document.getElementById("bookForm").addEventListener("submit", function (event) {
-//     event.preventDefault();
-//
-//     let selectedGenre = genreSearch.value;
-//     if (selectedGenre === "" && newGenreInput.value.trim() !== "") {
-//         selectedGenre = newGenreInput.value.trim();
-//         genres.push(selectedGenre); // Add the new genre to the list
-//         populateGenreList();
-//     }
-//
-//     alert("Book added successfully!");
-//     // Reset form fields if needed, or add form submission logic here
-// });
-
