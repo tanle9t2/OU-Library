@@ -1,0 +1,41 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Lịch sử mượn sách{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-4">Lịch sử mượn sách</h2>
+  <table class="table table-bordered table-hover">
+    <thead class="table-dark">
+      <tr>
+        <th>Mã yêu cầu</th>
+        <th>Tên sách</th>
+        <th>Ghi chú</th>
+        <th>Trạng thái</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for req in requests %}
+      <tr>
+        <td>{{ req.book_request_id }}</td>
+        <td>{{ req.book.title }}</td>
+        <td>{{ req.note or '' }}</td>
+        <td>
+          {% if req.status.value == 'Doi' %}
+            <span class="badge bg-warning text-dark">Chờ duyệt</span>
+          {% elif req.status.value == 'Dong y' %}
+            <span class="badge bg-success">Đã duyệt</span>
+          {% else %}
+            <span class="badge bg-danger">Đã hủy</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4" class="text-center">Không có lịch sử mượn sách</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

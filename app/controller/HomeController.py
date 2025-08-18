@@ -4,6 +4,8 @@ from flask import render_template, request, redirect, url_for, session
 from app.dao.BookDAO import find_all, paginate_book, find_by_id, search_book, count_book_sell
 from app.dao.BookGerneDAO import find_all as find_all_genre
 from app.utils.helper import FORMAT_BOOK_TEXT
+from app.model.Request import Request
+from flask_login import login_user, logout_user, current_user
 
 index_bp = Blueprint('index', __name__)
 
@@ -51,3 +53,10 @@ def get_detail():
                            , sold_book=sold_book
                            , detail_book=detail_book
                            , books=books)
+
+
+
+@index_bp.route("/history")
+def history():
+    requests = Request.query.filter_by(user_id=current_user.user_id).all()
+    return render_template("history.html", requests=requests)
