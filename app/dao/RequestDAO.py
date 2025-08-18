@@ -1,9 +1,11 @@
-<<<<<<< HEAD
 import math
+
+from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
 from app.model.Request import Request, Status
 from sqlalchemy import extract, desc, asc
+from app.model.Book import Book
 
 
 def find_all_waiting_request(page=1, limit=5, order=None, date=None):
@@ -49,11 +51,7 @@ def cancel_request(id, note):
     request.status = Status.CANCEL
     request.note = note
     db.session.commit()
-=======
-from app.model.Book import Book
-from app.model.Request import Request, Status
-from app import db
-from sqlalchemy.exc import SQLAlchemyError
+
 
 class RequestDAO:
     @staticmethod
@@ -90,4 +88,3 @@ class RequestDAO:
         except SQLAlchemyError as e:
             db.session.rollback()
             return {"error": str(e)}, 500
->>>>>>> dev
