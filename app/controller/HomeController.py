@@ -3,6 +3,7 @@ from flask import render_template, request, redirect, url_for, session
 
 from app.dao.BookDAO import find_all, paginate_book, find_by_id, search_book, count_book_sell
 from app.dao.BookGerneDAO import find_all as find_all_genre
+from app.dao.PublisherDAO import find_all as find_all_publisher
 from app.utils.helper import FORMAT_BOOK_TEXT
 from app.model.Request import Request
 from flask_login import login_user, logout_user, current_user
@@ -18,18 +19,30 @@ def search_main():
     order = all_query_params.pop('order', 'id')
     limit = int(all_query_params.pop('limit', 12))
     page = int(all_query_params.pop('page', 1))
+    genre_params = all_query_params.pop('genre', None)
+    publisher_params = all_query_params.pop('publisher', None)
 
-    book = search_book(keyword=keyword, page=page, order=order, limit=limit)
+    if genre_params:
+        genre_params = list(map(int, genre_params.split(',')))
+
+    if publisher_params:
+        publisher_params = list(map(int, publisher_params.split(',')))
+
+    book = search_book(keyword=keyword, genres=genre_params, publishers=publisher_params,
+                       page=page, order=order, limit=limit)
     genres = find_all_genre()
+    publishers = find_all_publisher()
 
     return render_template("search.html"
                            , keyword=keyword
                            , genres=genres
+                           , genre_params=genre_params
+                           , publisher_params=publisher_params
+                           , publishers=publishers
                            , order=order
                            , limit=limit
                            , params=all_query_params
                            , pagination=book)
-
 
 
 @index_bp.route('/detail')
@@ -47,7 +60,6 @@ def get_detail():
         "Số trang": book.num_page,
         "Hình thức": book.format,
     }
-
 
     return render_template("book-detail.html", book=book.to_dict()
                            , sold_book=sold_book
