@@ -2,10 +2,11 @@ import pdb
 import string
 import random
 import os
-from flask import redirect, url_for, session, render_template
+
+from firebase_admin import messaging
+from flask import redirect, url_for, session, render_template, request, jsonify
 from flask_dance.contrib.google import make_google_blueprint, google
 from flask_login import current_user, login_user, logout_user
-
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app import db
@@ -51,7 +52,6 @@ def load_user(user_id):
     return UserDao.get_user_by_id(user_id)
 
 
-
 @app.route("/monitor")
 def monitor():
     return render_template("monitor.html")
@@ -72,7 +72,8 @@ def abc_login():
     password = ''.join(random.choices(string.digits, k=8))
     first_name = user_info.get("given_name", "")
     last_name = user_info.get("family_name", "")
-    avt_url = user_info.get("picture") or 'https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg'
+    avt_url = user_info.get(
+        "picture") or 'https://png.pngtree.com/png-vector/20191101/ourmid/pngtree-cartoon-color-simple-male-avatar-png-image_1934459.jpg'
 
     check = UserDao.check_exists_email(email=email)
 
@@ -108,12 +109,42 @@ def abc_login():
     else:
         return "Lỗi xác thực", 500
 
+
 @app.route("/logout")
 def logout():
     logout_user()
     session.pop("google_oauth_token", None)
     session.clear()
     return redirect(url_for('index.search_main'))
+
+
+def send_notification_to_user(user_id,title,body):
+    topic = f"user_{user_id}"
+    message = messaging.Message(
+        notification=messaging.Notification(title=title, body=body),
+        topic=topic
+    )
+    response = messaging.send(message)
+    return response
+
+
+@app.route("/subscribe_topic", methods=["POST"])
+def subscribe_topic():
+    data = request.json
+    user_id = data.get("userId")
+    token = data.get("token")
+
+    if not user_id or not token:
+        return jsonify({"error": "Missing userId or token"}), 400
+
+    topic = f"user_{user_id}"  # unique topic per user
+
+    try:
+        response = messaging.subscribe_to_topic([token], topic)
+        print("Subscribe response:", response)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
