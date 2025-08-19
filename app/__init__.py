@@ -16,12 +16,12 @@ load_dotenv()
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
 
-cred = credentials.Certificate("D:\\code\\QLDA\\firebase.json")
+cred = credentials.Certificate(os.getenv("FIREBASE_PATH"))
 firebase_admin.initialize_app(cred)
 
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_URL = os.getenv("DB_URL")
-# SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+
 
 
 app.secret_key = os.getenv("SECRET_KEY")

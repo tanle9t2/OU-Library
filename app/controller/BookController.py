@@ -14,7 +14,7 @@ book_controller_bp = Blueprint('book_controller', __name__)
 def borrow_book(book_id):
     if not current_user.is_authenticated:
         flash("Bạn cần đăng nhập để mượn sách!", "danger")
-        return redirect(url_for('account.login'))
+        return redirect(url_for('account.login_process'))
 
     user_id = current_user.user_id
 
