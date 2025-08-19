@@ -65,6 +65,7 @@ pipeline {
                           -e DB_URL=$DB_URL \
                           -e DB_PASSWORD=$DB_PASSWORD \
                           -e SECRET_KEY=$SECRET_KEY \
+                          -e FIREBASE_PATH=$FIREBASE_PATH \
                           -e CLIENT_ID=$CLIENT_ID \
                           -e CLIENT_SECRET=$CLIENT_SECRET \
                           ${IMAGE_NAME}:${IMAGE_TAG}
