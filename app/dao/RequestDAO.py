@@ -53,9 +53,7 @@ def find_all_waiting_request(page=1, limit=5, order=None, date=None, status=Stat
 def accept_request(user_id, id):
     request = Request.query.get(id)
     request.status = Status.ACCEPT
-    send_notification_to_user(user_id=request.user_id, title="Chấp nhận yêu cầu",
-                              body="Yêu cầu của bạn đã được chấp nhận")
-
+    send_notification_to_user(user_id=request.user_id, title="Chấp nhận yêu cầu",body="Yêu cầu của bạn đã được chấp nhận")
     create_activity_log(user_id=user_id, book_id=request.book.book_id, action="ACCEPT")
     db.session.commit()
 
@@ -64,10 +62,20 @@ def cancel_request(user_id, id, note):
     request = Request.query.get(id)
     request.status = Status.CANCEL
     request.note = note
-    send_notification_to_user(user_id=request.user_id, title="Hủy cầu",
-                              body=note)
-
+    send_notification_to_user(user_id=request.user_id, title="Hủy cầu",body=note)
     create_activity_log(user_id=user_id, book_id=request.book.book_id, action="CANCEL")
+    db.session.commit()
+
+
+def return_request(user_id, id):
+    request = Request.query.get(id)
+    request.status = Status.RETURN
+    book = request.book
+    if book.borrowing > 0:
+        book.borrowing -= 1
+    book.quantity += 1
+    send_notification_to_user(user_id=request.user_id, title="Trả sách thành công", body="Yêu cầu mượn sách của bạn đã được trả.")
+    create_activity_log(user_id=user_id, book_id=book.book_id, action="RETURN")
     db.session.commit()
 
 

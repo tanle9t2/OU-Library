@@ -9,6 +9,7 @@ class Status(PythonEnum):
     WAIT = "Doi"
     ACCEPT = "Dong y"
     CANCEL = "Huy"
+    RETURN = "Tra"
 
 
 class Request(db.Model):

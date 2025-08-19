@@ -2,7 +2,7 @@ from flask_login import current_user
 
 from app import db
 from app.authentication.login_required import admin_required
-from app.dao.RequestDAO import find_all_waiting_request, accept_request, cancel_request
+from app.dao.RequestDAO import find_all_waiting_request, accept_request, cancel_request, return_request
 from app.model.Book import BookFormat
 from flask import Blueprint, redirect, url_for
 from flask import jsonify
@@ -52,13 +52,27 @@ def handle_return_book():
     range_date = all_query_params.pop('date', None)
     order = all_query_params.pop('order', None)
 
-    request_borrowing = find_all_waiting_request(page=page, limit=limit, date=range_date, order=order,
-                                                 status=Status.ACCEPT)
+    request_borrowing = find_all_waiting_request(
+        page=page,
+        limit=limit,
+        date=range_date,
+        order=order,
+        status=Status.ACCEPT
+    )
 
-    return render_template("admin/adminHandleRequest.html",
-                           nextPage=request_borrowing['current_page'] + 1,
-                           prevPage=request_borrowing['current_page'] - 1,
-                           request_borrowing=request_borrowing)
+    return render_template(
+        "admin/adminReturnBook.html",
+        nextPage=request_borrowing['current_page'] + 1,
+        prevPage=request_borrowing['current_page'] - 1,
+        request_borrowing=request_borrowing
+    )
+
+
+@employee_bp.route("/return-request/<book_request_id>", methods=["POST"])
+@admin_required
+def handle_return_request(book_request_id):
+    return_request(current_user.user_id, book_request_id)
+    return redirect(url_for('employee.handle_return_book'))
 
 
 @employee_bp.route("/accept-request/<book_request_id>", methods=["POST"])

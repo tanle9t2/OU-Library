@@ -22,7 +22,7 @@
                         <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
                             <li class="breadcrumb-item"><a href="/admin/statistic-revenue"><i
                                     class="fas fa-home"></i></a></li>
-                            <li class="breadcrumb-item"><a href="/admin/statistic-revenue">Duyệt yêu cầu</a>
+                            <li class="breadcrumb-item"><a href="/admin/statistic-revenue">Trả sách</a>
                             </li>
                         </ol>
                     </nav>
@@ -72,7 +72,7 @@
         <div class=" col ">
             <div class="card" style="margin-bottom: 0">
                 <div class="card-header bg-transparent" style="display: flex; justify-content: space-between">
-                    <h3 class="mb-0">Danh sách yêu cầu mượn sách</h3>
+                    <h3 class="mb-0">Danh sách yêu cầu trả sách</h3>
                     {% if request_borrowing['pages'] > 1 %}
                     <ul class="pagination" style="margin: 0; display: flex; justify-content: center;">
                         <!-- Nút Previous -->
@@ -178,24 +178,10 @@
                                             {{ s.created_at }}
                                         </td>
                                         <td class="text-center" style="border: 1px solid #adb5bd;">
-                                            <form action="/employee/accept-request/{{ s.book_request_id }}"
+                                            <form action="/employee/return-request/{{ s.book_request_id }}"
                                                   method="POST" style="display:inline;">
-                                                <button type="submit" class="btn btn-success">Chấp nhận</button>
+                                                <button type="submit" class="btn btn-success">Xác nhận trả</button>
                                             </form>
-                                            <button class="cancel-btn btn btn-danger">Hủy</button>
-                                            <div class="modal-overlay cancel-form" id="modalOverlay">
-                                                <form action="/employee/cancel-request/{{ s.book_request_id }}"
-                                                      method="POST"
-                                                      class="modal-container" onclick="event.stopPropagation()">
-                                                    <div class="modal-header">Lý do hủy</div>
-                                                    <textarea class="w-100" name="note"
-                                                              placeholder="Nhập lý do hủy yêu cầu"></textarea>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn-undo">Hủy</button>
-                                                        <button type="submit" class="btn-confirm">Xác nhận</button>
-                                                    </div>
-                                                </form>
-                                            </div>
                                         </td>
                                     </tr>
                                     {% endfor %}
