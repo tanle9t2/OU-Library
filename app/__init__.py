@@ -15,7 +15,7 @@ load_dotenv()
 
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1)
 app.config['PREFERRED_URL_SCHEME'] = 'https'
-#
+
 cred = credentials.Certificate(os.getenv("FIREBASE_PATH"))
 firebase_admin.initialize_app(cred)
 

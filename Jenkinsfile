@@ -64,7 +64,8 @@ pipeline {
                           -p 5000:5000 \
                           -e DB_URL=$DB_URL \
                           -e DB_PASSWORD=$DB_PASSWORD \
-                          -e SECRET_KEY=$SECRET_KEY \
+                          -e SECRET_KEY=$SECRET_KEY \\
+                          -v /mnt/d/code/QLDA/firebase.json:/app/firebase.json \
                           -e FIREBASE_PATH=$FIREBASE_PATH \
                           -e CLIENT_ID=$CLIENT_ID \
                           -e CLIENT_SECRET=$CLIENT_SECRET \
