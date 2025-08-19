@@ -1,0 +1,22 @@
+  /* Bảng */
+  .activity-table th, .activity-table td {
+    padding: 12px;
+    vertical-align: middle;
+  }
+  .activity-table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  /* Chart container */
+  .chart-container {
+    padding: 15px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    height: 400px;
+    min-height: 300px;
+  }
+  #actionChart {
+    width: 100% !important;
+    height: 100% !important;
+  }

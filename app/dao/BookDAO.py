@@ -1,10 +1,15 @@
 from sqlalchemy import desc, asc, or_
 from sqlalchemy.sql import text
 
-from app.model.Book import Book
+from app.dao.ActivityLogDAO import create_activity_log
+from app.exception.NotFoundException import NotFoundError
+from app.model.Book import Book, BookFormat
 from app.model.BookGerne import BookGerne
 from app import app, db
 import math
+import cloudinary
+
+from app.model.Publisher import Publisher
 
 
 def find_by_id(id):
@@ -56,7 +61,7 @@ def count_book_sell(book_id):
     return result.sold if result.sold else 0
 
 
-def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=None, page=1):
+def search_book(keyword=None, order=None, genres=None, publishers=None, limit=None, page=1):
     query = Book.query
     if keyword:
         query = query.filter(
@@ -72,8 +77,11 @@ def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=N
             query = query.order_by(desc(getattr(Book, "created_at")))
         elif order == 'oldest':
             query = query.order_by(asc(getattr(Book, "created_at")))
-    if gerne_id:
-        query = query.filter(Book.book_gerne_id == gerne_id)
+    if genres:
+        query = query.filter(Book.book_gerne_id.in_(genres))
+
+    if publishers:
+        query = query.filter(Book.publisher_id.in_(publishers))
 
     start = (page - 1) * limit
     end = start + limit
@@ -89,3 +97,37 @@ def search_book(keyword=None, order=None, direction=None, gerne_id=None, limit=N
         'pages': total_page,
         'books': books
     }
+
+
+def create_book(user_id, data):
+    book = Book(title=data['title'],
+                author=data['author'],
+                quantity=data['quantity'],
+                num_page=data['num_page'],
+                description=data['description'],
+                release_date=data['release_date'],
+                weight=data['weight'],
+                book_gerne_id=data['book_gerne_id'],
+                dimension=data['dimension'],
+                barcode=data['barcode'])
+
+    book_images = data['book_images']
+    if data['publisher']:
+        publisher = Publisher.query.get(data['publisher'])
+        if publisher is None: raise NotFoundError('Publisher not found')
+        book.publisher_id = publisher.publisher_id
+
+    if data['format'] == 1:
+        book.format = "Bìa Cứng"
+    else:
+        book.format = "Bìa Mềm"
+
+    if book_images:
+        for image in book_images:
+            res = cloudinary.uploader.upload(image)
+            image_url = res['secure_url']
+            book.image_url = image_url
+    db.session.add(book)
+    db.session.commit()
+
+    create_activity_log(user_id=user_id, book_id=book.book_id, action="CREATED")
